@@ -89,11 +89,25 @@ def process_R_instruction(data_fields):
 
     """
     
-    Rd = data_fields[5:8]
-    Rs = data_fields[8:11]
-    Rt = data_fields[11:14]    
+    Rd = data_fields[0:3]
+    Rs = data_fields[3:6]
+    Rt = data_fields[6:9]    
 
     return (Rd, Rs, Rt)
+
+def process_I_instruction(data_fields):
+    """Processes I type instruction for ISA X
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: Tuple(Rd, Imm8)
+    """
+    Rd = data_fields[0:3]
+    Imm8 = data_fields[3:11] 
+
+    return (Rd, Imm8)
 
 
 def xsim(config_file, input_file, output_file):
