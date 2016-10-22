@@ -63,7 +63,7 @@ def init_register_file():
     """Initializes the register file prior to
        simulation.
 
-       Keywor arguments:
+       Keyword arguments:
        None
 
        Return: Dictionary
@@ -77,6 +77,23 @@ def init_register_file():
             'r5':0,
             'r6':0,
             'r7':0,}
+
+def process_R_instruction(data_fields):
+    """Processes R type instruction for ISA X
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    
+    Return: Tuple(Rd, Rs, Rt)
+
+    """
+    
+    Rd = data_fields[5:8]
+    Rs = data_fields[8:11]
+    Rt = data_fields[11:14]    
+
+    return (Rd, Rs, Rt)
 
 
 def xsim(config_file, input_file, output_file):
