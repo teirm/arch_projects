@@ -69,9 +69,15 @@ def xsim(config_file, input_file, output_file):
     """
     latency_dict = configure_latency(config_file)
     instruction_memory = parse_input(input_file)
+    data_memory = {}
+    program_counter = 0
 
-    pprint(latency_dict)
-    pprint(instruction_memory)
+    while True:
+        current_instruction = instruction_memory[program_counter]
+        
+        if current_instruction[0:5] is '00000':       
+            print("FISH")
+
 
 
 if __name__ == "__main__":
