@@ -221,7 +221,8 @@ def div_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = int(REGISTER_FILE[Rs] / REGISTER_FILE[Rt])
+    result = Bits(bin=REGISTER_FILE[Rs]).int / Bits(bin=REGISTER_FILE[Rt]).int
+    REGISTER_FILE[Rd] = Bits(int=int(result), length=16).bin
     return REGISTER_FILE[Rd]
 
 
@@ -237,11 +238,10 @@ def mul_instruction(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int * Bits(bin=REGISTER_FILE[Rt]).int
-    bin_result = bin(result)[2:]
-    if len(result) > 16:
-        REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
-    else:
-        REGISTER_FILE[Rd] = Bits(bin=bin_result, length=16).bin
+    print(result)
+    bin_result = Bits(int=result,length=32).bin
+    print(bin_result)
+    REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
 
     return REGISTER_FILE[Rd]
 

@@ -555,7 +555,7 @@ def test_and_instruction():
     
 
 def test_nor_instruction():
-    """Tests the  and instruction with a positive 
+    """Tests the nor instruction with a positive 
        and a negative value.
     """
     Rd = '101'
@@ -573,5 +573,63 @@ def test_nor_instruction():
 
     nor_data_fields = ''.join([Rd, Rs, Rt])
     
-    expected_value = (~(Bits(bin=right_operand) | Bits(bin=left_operand))).bin 
+    expected_value = (~(Bits(bin=right_operand) | Bits(bin=left_operand))).bin.zfill(16) 
     return_value = nor_instruction(nor_data_fields)
+
+    assert expected_value == return_value
+
+
+def test_div_instruction():
+    """Tests the div instruction with a positive and a 
+       negative value.
+    """
+    Rd = '101'
+    Rs = '011'
+    Rt = '001'
+
+    right_operand = Bits(int=11, length=8).bin
+    left_operand = Bits(int=-121, length=8).bin
+    
+    left_data_fields = ''.join([Rs, left_operand])
+    right_data_fields = ''.join([Rt, right_operand])
+    
+    lis(left_data_fields)
+    lis(right_data_fields)
+
+    div_data_fields = ''.join([Rd, Rs, Rt])
+    
+    expected_value = -11
+     
+    return_value = div_instruction(div_data_fields)
+    
+    assert expected_value == Bits(bin=return_value).int
+    
+
+def test_mult_instruction_small():
+    """Tests the mul instruction with a positive and a 
+       negative small values 
+    """
+    init()
+    Rd = '101'
+    Rs = '001'
+    Rt = '011'
+
+    right_operand = Bits(int=4, length=8).bin
+    left_operand = Bits(int=-2, length=8).bin
+    
+    left_data_fields = ''.join([Rs, left_operand])
+    right_data_fields = ''.join([Rt, right_operand])
+    
+    lis(left_data_fields)
+    lis(right_data_fields)
+
+    mul_data_fields = ''.join([Rd, Rs, Rt])
+    
+    expected_value = -8
+     
+    return_value = mul_instruction(mul_data_fields)
+    
+    assert expected_value == Bits(bin=return_value).int
+
+    
+         
