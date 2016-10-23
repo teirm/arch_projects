@@ -455,7 +455,7 @@ def branch_zero(data_fields, program_counter):
         ls_bin = Bits(bin=z_ext) << 1
         return program_counter + ls_bin.int
     else:
-        return program_counter + 2
+        return program_counter + 1
 
 
 def jump_register(data_fields, program_counter):
@@ -469,7 +469,7 @@ def jump_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    return program_counter + Bits(bin=Rs).int
+    return program_counter + Bits(bin=REGISTER_FILE[Rs]).int
 
 
 def jump_and_link_register(data_fields, program_counter):
@@ -483,8 +483,8 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = Bits(int=program_counter + 2, length=16).bin
-    return Bits(bin=REGISTER_FILE[Rs]).int
+    REGISTER_FILE[Rd] = Bits(int=program_counter + 1, length=16).bin
+    return (Bits(bin=REGISTER_FILE[Rs]) << 1).int
 
 
 def jump_immediate(Imm11, program_counter):
@@ -498,7 +498,10 @@ def jump_immediate(Imm11, program_counter):
     Return: int
     """
     pc_bits = Bits(int=program_counter, length=16).bin
-    cat_bits = ''.join([Imm11, pc_bits[0:5]])
+    print(pc_bits)
+    ls_imm = Bits(bin=Imm11) << 1
+    print(ls_imm.bin)
+    cat_bits = ''.join([pc_bits[0:5],ls_imm.bin])
     return Bits(bin=cat_bits).int
 
 
