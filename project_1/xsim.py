@@ -375,18 +375,18 @@ def branch_positive(data_fields, program_counter):
     program_counter -- the current value of PC
 
     Return: int
-
-    NOTE: UNSURE ABOUT RETURN PC+2
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
+    print(check_value)
+
 
     if check_value > 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
         return program_counter + ls_bin.int
     else:
-        return program_counter + 2
+        return program_counter + 1
 
 
 def branch_negative(data_fields, program_counter):
@@ -409,7 +409,7 @@ def branch_negative(data_fields, program_counter):
         ls_bin = Bits(bin=z_ext) << 1
         return program_counter + ls_bin.int
     else:
-        return program_counter + 2
+        return program_counter + 1
 
 
 def branch_nzero(data_fields, program_counter):
@@ -432,7 +432,7 @@ def branch_nzero(data_fields, program_counter):
         ls_bin = Bits(bin=z_ext) << 1
         return program_counter + ls_bin.int
     else:
-        return program_counter + 2
+        return program_counter + 1 
 
 
 def branch_zero(data_fields, program_counter):

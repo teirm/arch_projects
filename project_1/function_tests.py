@@ -95,4 +95,151 @@ def test_liz_positive():
     
     assert expected_value == return_value  
    
+
+def test_branch_positive_taken():
+    """Tests the branch positive instruction
+       when the branch is taken 
+    """
+    init()
+    Rd = '010'
+    cond = Bits(int=123, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    liz(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 40   
+    return_value = branch_positive(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
+
+def test_branch_positive_not_taken():
+    """Tests the branch positive instruction
+       when the branch is not taken 
+    """
+    init()
+    Rd = '011'
+    cond = Bits(int=-65, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 1   
+    return_value = branch_positive(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
+
+def test_branch_negative_taken():     
+    """Tests the branch negative instruction
+       when the branch is taken 
+    """
+    init()
+    Rd = '100'
+    cond = Bits(int=-3, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 40   
+    return_value = branch_negative(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
+     
+def test_branch_negative_not_taken():     
+    """Tests the branch negative instruction
+       when the branch is not taken 
+    """
+    init()
+    Rd = '100'
+    cond = Bits(int=+3, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 1   
+    return_value = branch_negative(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+          
+
+def test_branch_not_zero_positive():
+    """Tests the branch neq 0 instruction
+       when the branch is taken
+    """
+    init()
+    Rd = '101'
+    cond = Bits(int=30, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 40   
+    return_value = branch_nzero(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
+
+def test_branch_not_zero_negative():
+    """Tests the branch neq 0 instruction
+       when the branch is taken
+    """
+    init()
+    Rd = '101'
+    cond = Bits(int=-30, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 40   
+    return_value = branch_nzero(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
       
+def test_branch_not_zero_not_taken():
+    """Tests the branch neq 0 instruction
+       when the branch is taken
+    """
+    init()
+    Rd = '101'
+    cond = Bits(int=0, length=8).bin 
+    program_counter = 10
+
+    data_fields = ''.join([Rd, cond])
+    lis(data_fields)
+
+    Imm8 = Bits(uint=20, length=8).bin
+    data_fields = ''.join([Rd, Imm8])  
+    
+    expected_value = program_counter + 1   
+    return_value = branch_nzero(data_fields, program_counter) 
+
+    assert expected_value == return_value 
+
+
