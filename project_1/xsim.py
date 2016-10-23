@@ -241,6 +241,74 @@ def exp_instruction(data_fields):
     return REGISTER_FILE[Rd]
 
 
+def load_word(data_fields):
+    """LW instruction with op_code 01000.  Source is 
+       word_alligned
+    
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs]] 
+
+    return REGISTER_FILE[Rd]
+
+
+def store_word(data_fields):
+    """SW instruction with op_code 01001.  Source is 
+       word_alligned
+    
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    DATA_MEMORY[REGISTER_FILE[Rs]] = REGISTER_FILE[Rt]
+    return DATA_MEMORY[REGISTER_FILE[Rs]]
+
+
+def liz(data_fields): 
+    """SW instruction with op_code 01001.  Source is 
+       word_alligned
+    
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    
+    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT 
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    REGISTER_FILE[Rd] = int(bin(Imm8)[2:].zfill(16))       
+    return REGISTER_FILE[Rd]  
+
+
+def lis(data_fields):
+    """SW instruction with op_code 01001.  Source is 
+       word_alligned
+    
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    
+    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT 
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    msb = Imm8[0]
+    REGISTER_FILE[Rd] = int(bin(Imm8)[2:].rjust(16,msb))       
+    return REGISTER_FILE[Rd]  
+
+
+
+
 def xsim(config_file, input_file, output_file):
     """Run the simulation of the X isa for given
        configuration and input file and maintain stats
