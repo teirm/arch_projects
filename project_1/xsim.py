@@ -73,14 +73,14 @@ def init_register_file():
        Return: Dictionary
     """
 
-    REGISTER_FILE['r0'] = 0
-    REGISTER_FILE['r1'] = 0
-    REGISTER_FILE['r2'] = 0
-    REGISTER_FILE['r3'] = 0
-    REGISTER_FILE['r4'] = 0
-    REGISTER_FILE['r5'] = 0
-    REGISTER_FILE['r6'] = 0
-    REGISTER_FILE['r7'] = 0
+    REGISTER_FILE['r0'] = ''.zfill(16)
+    REGISTER_FILE['r1'] = ''.zfill(16)
+    REGISTER_FILE['r2'] = ''.zfill(16)
+    REGISTER_FILE['r3'] = ''.zfill(16)
+    REGISTER_FILE['r4'] = ''.zfill(16)
+    REGISTER_FILE['r5'] = ''.zfill(16)
+    REGISTER_FILE['r6'] = ''.zfill(16)
+    REGISTER_FILE['r7'] = ''.zfill(16)
 
 
 def init_statistics_dict():
@@ -345,6 +345,7 @@ def lis(data_fields):
     (Rd, Imm8) = process_I_instruction(data_fields)
     msb = Imm8[0]
     REGISTER_FILE[Rd] = Imm8.rjust(16, msb)
+    print(REGISTER_FILE[Rd])
     return REGISTER_FILE[Rd]
 
 
@@ -360,7 +361,8 @@ def lui(data_fields):
     NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
-    REGISTER_FILE[Rd] = ''.join([Imm8, REGISTER_FILE[Rd]])
+    REGISTER_FILE[Rd] = ''.join([Imm8,
+                                 Bits(bin=REGISTER_FILE[Rd][8:16]).bin])
     return REGISTER_FILE[Rd]
 
 
@@ -582,9 +584,9 @@ def xsim(config_file, input_file, output_file):
             print('ERROR: UNRECOGNZIED OPCODE {}'.format(op_code),
                   file=sys.stderr)
             break
-    
+
     with open(output_file, 'w') as ofp:
-        json.dump(statistics_dict, ofp) 
+        json.dump(statistics_dict, ofp)
 
 if __name__ == '__main__':
 
