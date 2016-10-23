@@ -129,7 +129,6 @@ def process_R_instruction(data_fields):
     Return: Tuple(Rd, Rs, Rt)
 
     """
-
     Rd = ''.join(['r', str(int(data_fields[0:3], 2))])
     Rs = ''.join(['r', str(int(data_fields[3:6], 2))])
     Rt = ''.join(['r', str(int(data_fields[6:9], 2))])
