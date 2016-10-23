@@ -11,3 +11,5 @@
 ===========
 * Found Bits module to simplify bitwise arithmetic
 * Should create virtual environment for use with OCCAM
+* The PC+2 value comes from each instruction being 16 bits. For
+  simulation purposes this should be changed to PC+1.Completed []

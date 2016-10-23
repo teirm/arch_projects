@@ -446,7 +446,37 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = Bits(int=program_counter, length=16).bin
+    REGISTER_FILE[Rd] = Bits(int=program_counter+2, length=16).bin
+    return Bits(bin=REGISTER_FILE[Rs]).int
+
+
+def jump_immediate(Imm11, program_counter):
+    """JALR instruction with op_code 10011
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+    """
+    pc_bits = Bits(int=program_counter, length=16).bin
+    cat_bits = ''.join([Imm11, pc_bits[0:5]])
+    return Bits(bin=cat_bits).int
+
+
+def put_register(data_fields):
+    """PUT instruction with op_code 10011
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int 
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    print(REGISTER_FILE[Rs])
+    return REGISTER_FILE[Rs] 
 
 
 def xsim(config_file, input_file, output_file):
