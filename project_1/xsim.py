@@ -191,7 +191,10 @@ def and_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = (Bits(bin=REGISTER_FILE[Rs]) & Bits(bin=REGISTER_FILE[Rt])).bin
+    REGISTER_FILE[Rd] = (
+        Bits(
+            bin=REGISTER_FILE[Rs]) & Bits(
+            bin=REGISTER_FILE[Rt])).bin
     return REGISTER_FILE[Rd]
 
 
@@ -207,7 +210,8 @@ def nor_instruction(data_fields):
     NOTE: POTENTIAL BUG DUE TO TWOS-COMPLEMENT
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = (~(Bits(bin=REGISTER_FILE[Rs]) | Bits(bin=REGISTER_FILE[Rt]))).bin
+    REGISTER_FILE[Rd] = (~(Bits(bin=REGISTER_FILE[Rs]) |
+                           Bits(bin=REGISTER_FILE[Rt]))).bin
     return REGISTER_FILE[Rd]
 
 
@@ -238,9 +242,7 @@ def mul_instruction(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int * Bits(bin=REGISTER_FILE[Rt]).int
-    print(result)
-    bin_result = Bits(int=result,length=32).bin
-    print(bin_result)
+    bin_result = Bits(int=result, length=32).bin
     REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
 
     return REGISTER_FILE[Rd]
@@ -257,7 +259,7 @@ def mod_instruction(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int % Bits(bin=REGISTER_FILE[Rt]).int
-    REGISTER_FILE[Rd] = Bits(bin=result, length=16).bin
+    REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
     return REGISTER_FILE[Rd]
 
 
@@ -272,12 +274,8 @@ def exp_instruction(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int ** Bits(bin=REGISTER_FILE[Rt]).int
-    bin_result = bin(result)
-
-    if len(result) > 16:
-        REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
-    else:
-        REGISTER_FILE[Rd] = Bits(bin=bin_result, length=16).bin
+    bin_result = Bits(int=result, length=32).bin
+    REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
 
     return REGISTER_FILE[Rd]
 
@@ -293,7 +291,7 @@ def load_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs]]
+    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)]
 
     return REGISTER_FILE[Rd]
 
@@ -309,7 +307,7 @@ def store_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    DATA_MEMORY[REGISTER_FILE[Rs]] = REGISTER_FILE[Rt]
+    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = REGISTER_FILE[Rt]
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
 
@@ -380,7 +378,6 @@ def branch_positive(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
     print(check_value)
 
-
     if check_value > 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
@@ -432,7 +429,7 @@ def branch_nzero(data_fields, program_counter):
         ls_bin = Bits(bin=z_ext) << 1
         return program_counter + ls_bin.int
     else:
-        return program_counter + 1 
+        return program_counter + 1
 
 
 def branch_zero(data_fields, program_counter):
@@ -501,7 +498,7 @@ def jump_immediate(Imm11, program_counter):
     print(pc_bits)
     ls_imm = Bits(bin=Imm11) << 1
     print(ls_imm.bin)
-    cat_bits = ''.join([pc_bits[0:5],ls_imm.bin])
+    cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
     return Bits(bin=cat_bits).int
 
 
