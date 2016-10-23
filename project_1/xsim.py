@@ -8,7 +8,9 @@ Date: 22 October 2016
 
 import sys
 import json
-from pprint import pprint
+
+REGISTER_FILE = {}
+DATA_MEMORY = {}
 
 
 def configure_latency(config_file):
@@ -68,15 +70,16 @@ def init_register_file():
 
        Return: Dictionary
     """
-    
-    return {'r0':0,
-            'r1':0,
-            'r2':0,
-            'r3':0,
-            'r4':0,
-            'r5':0,
-            'r6':0,
-            'r7':0,}
+
+    REGISTER_FILE['r0'] = 0
+    REGISTER_FILE['r1'] = 0
+    REGISTER_FILE['r2'] = 0
+    REGISTER_FILE['r3'] = 0
+    REGISTER_FILE['r4'] = 0
+    REGISTER_FILE['r5'] = 0
+    REGISTER_FILE['r6'] = 0
+    REGISTER_FILE['r7'] = 0
+
 
 def process_R_instruction(data_fields):
     """Processes R type instruction for ISA X
@@ -84,16 +87,17 @@ def process_R_instruction(data_fields):
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
-    
+
     Return: Tuple(Rd, Rs, Rt)
 
     """
-    
-    Rd = data_fields[0:3]
-    Rs = data_fields[3:6]
-    Rt = data_fields[6:9]    
+
+    Rd = ''.join(['r', str(int(data_fields[0:3], 2))])
+    Rs = ''.join(['r', str(int(data_fields[3:6], 2))])
+    Rt = ''.join(['r', str(int(data_fields[6:9], 2))])
 
     return (Rd, Rs, Rt)
+
 
 def process_I_instruction(data_fields):
     """Processes I type instruction for ISA X
@@ -104,10 +108,137 @@ def process_I_instruction(data_fields):
 
     Return: Tuple(Rd, Imm8)
     """
-    Rd = data_fields[0:3]
-    Imm8 = data_fields[3:11] 
+    Rd = ''.join(['r', str(int(data_fields[0:3], 2))])
+    Imm8 = int(data_fields[3:11], 2)
 
     return (Rd, Imm8)
+
+
+def add_instruction(data_fields):
+    """ADD instruction with op_code '00000'
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed
+                  sans the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] + REGISTER_FILE[Rt]
+    return REGISTER_FILE[Rd]
+
+
+def sub_instruction(data_fields):
+    """SUB instruction with op_code '00001'
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] - REGISTER_FILE[Rt]
+    return REGISTER_FILE[Rd]
+
+
+def and_instruction(data_fields):
+    """AND instruction with op_code '00010'
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] & REGISTER_FILE[Rt]
+    return REGISTER_FILE[Rd]
+
+
+def nor_instruction(data_fields):
+    """NOR instruction with op_code '00011'
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+
+    NOTE: POTENTIAL BUG DUE TO TWOS-COMPLEMENT
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = ~(REGISTER_FILE[Rs] | REGISTER_FILE[Rt])
+    return REGISTER_FILE[Rd]
+
+
+def div_instruction(data_fields):
+    """DIV instruction with op_code '00100'
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = int(REGISTER_FILE[Rs] / REGISTER_FILE[Rt])
+    return REGISTER_FILE[Rd]
+
+
+def mul_instruction(data_fields):
+    """MUL instruction with op_code '00100'.  Takes only
+       lower 16 bits of result
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    result = bin(REGISTER_FILE[RS] * REGISTER_FILE[Rt])[2:]
+
+    if len(result) > 16:
+        REGISTER_FILE[Rd] = int(result[len(result) - 16:len(result)])
+    else:
+        REGISTER_FILE[Rd] = int(result)
+
+    return REGISTER_FILE[Rd]
+
+
+def mod_instruction(data_fields):
+    """MOD instruction with op_code '00110'.
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] % REGISTER_FILE[Rt]
+    return REGISTER_FILE[Rd]
+
+
+def exp_instruction(data_fields):
+    """EXP instruction with op_code '00111'.
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    result = bin(REGISTER_FILE[Rs] ** REGISTER_FILE[Rt])[2:]
+
+    if len(result) > 16:
+        REGISTER_FILE[Rd] = int(result[len(result) - 16:len(result)])
+    else:
+        REGISTER_FILE[Rd] = int(result)
+
+    return REGISTER_FILE[Rd]
 
 
 def xsim(config_file, input_file, output_file):
@@ -123,8 +254,7 @@ def xsim(config_file, input_file, output_file):
     """
     latency_dict = configure_latency(config_file)
     instruction_memory = parse_input(input_file)
-    register_file = init_register_file()
-    data_memory = {}
+    init_register_file()
     program_counter = 0
 
     while True:
