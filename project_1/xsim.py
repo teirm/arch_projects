@@ -126,8 +126,8 @@ def add_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    result = Bits(bin=REGISTER_FILE[Rs]).int + Bits(bin=REGISTER_FILE[Rt]).int 
-    REGISTER_FILE[Rd] = Bits(int=result, length=16)
+    result = Bits(bin=REGISTER_FILE[Rs]).int + Bits(bin=REGISTER_FILE[Rt]).int
+    REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
     return REGISTER_FILE[Rd]
 
 
@@ -141,8 +141,8 @@ def sub_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    result = Bits(bin=REGISTER_FILE[Rs]).int - Bits(bin=REGISTER_FILE[Rt]).int 
-    REGISTER_FILE[Rd] = Bits(int=result, length=16)
+    result = Bits(bin=REGISTER_FILE[Rs]).int - Bits(bin=REGISTER_FILE[Rt]).int
+    REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
     return REGISTER_FILE[Rd]
 
 
@@ -206,7 +206,7 @@ def mul_instruction(data_fields):
     if len(result) > 16:
         REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
     else:
-        REGISTER_FILE[Rd] = bin_result
+        REGISTER_FILE[Rd] = Bits(bin=bin_result, length=16).bin
 
     return REGISTER_FILE[Rd]
 
@@ -222,7 +222,7 @@ def mod_instruction(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int % Bits(bin=REGISTER_FILE[Rt]).int
-    REGISTER_FILE[Rd] = Bits(bin=result, length=16)
+    REGISTER_FILE[Rd] = Bits(bin=result, length=16).bin
     return REGISTER_FILE[Rd]
 
 
@@ -242,7 +242,7 @@ def exp_instruction(data_fields):
     if len(result) > 16:
         REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
     else:
-        REGISTER_FILE[Rd] = int(bin_result)
+        REGISTER_FILE[Rd] = Bits(bin=bin_result, length=16).bin
 
     return REGISTER_FILE[Rd]
 
@@ -329,16 +329,124 @@ def lui(data_fields):
     return REGISTER_FILE[Rd]
 
 
-def branch_positive(data_fields):
+def branch_positive(data_fields, program_counter):
     """BP instruction with op_code 10100
 
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+
+    NOTE: UNSURE ABOUT RETURN PC+2
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    check_value = Bits(bin=REGISTER_FILE[Rd]).int
+
+    if check_value > 0:
+        z_ext = Imm8.zfill(16)
+        ls_bin = Bits(bin=z_ext) << 1
+        return program_counter + ls_bin.int
+    else:
+        return program_counter + 2
+
+
+def branch_negative(data_fields, program_counter):
+    """BN instruction with op_code 10101
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+
+    NOTE: UNSURE ABOUT RETURN PC+2
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    check_value = Bits(bin=REGISTER_FILE[Rd]).int
+
+    if check_value < 0:
+        z_ext = Imm8.zfill(16)
+        ls_bin = Bits(bin=z_ext) << 1
+        return program_counter + ls_bin.int
+    else:
+        return program_counter + 2
+
+
+def branch_nzero(data_fields, program_counter):
+    """BNZ instruction with op_code 100110
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+
+    NOTE: UNSURE ABOUT RETURN PC+2
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    check_value = Bits(bin=REGISTER_FILE[Rd]).int
+
+    if check_value is not 0:
+        z_ext = Imm8.zfill(16)
+        ls_bin = Bits(bin=z_ext) << 1
+        return program_counter + ls_bin.int
+    else:
+        return program_counter + 2
+
+
+def branch_zero(data_fields, program_counter):
+    """BNZ instruction with op_code 100111
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+
+    NOTE: UNSURE ABOUT RETURN PC+2
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    check_value = Bits(bin=REGISTER_FILE[Rd]).int
+
+    if check_value is 0:
+        z_ext = Imm8.zfill(16)
+        ls_bin = Bits(bin=z_ext) << 1
+        return program_counter + ls_bin.int
+    else:
+        return program_counter + 2
+
+
+def jump_register(data_fields, program_counter):
+    """JR instruction with op_code 01100
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
 
     Return: int
     """
-        
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    return program_counter + Bits(bin=Rs).int
+
+
+def jump_and_link_register(data_fields, program_counter):
+    """JALR instruction with op_code 10011
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    program_counter -- the current value of PC
+
+    Return: int
+    """
+    (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    REGISTER_FILE[Rd] = Bits(int=program_counter, length=16).bin
 
 
 def xsim(config_file, input_file, output_file):
