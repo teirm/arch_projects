@@ -9,6 +9,8 @@ Date: 22 October 2016
 import sys
 import json
 
+from bitstring import Bits
+
 REGISTER_FILE = {}
 DATA_MEMORY = {}
 
@@ -109,7 +111,7 @@ def process_I_instruction(data_fields):
     Return: Tuple(Rd, Imm8)
     """
     Rd = ''.join(['r', str(int(data_fields[0:3], 2))])
-    Imm8 = int(data_fields[3:11], 2)
+    Imm8 = data_fields[3:11]
 
     return (Rd, Imm8)
 
@@ -124,7 +126,8 @@ def add_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] + REGISTER_FILE[Rt]
+    result = Bits(bin=REGISTER_FILE[Rs]).int + Bits(bin=REGISTER_FILE[Rt]).int 
+    REGISTER_FILE[Rd] = Bits(int=result, length=16)
     return REGISTER_FILE[Rd]
 
 
@@ -138,7 +141,8 @@ def sub_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] - REGISTER_FILE[Rt]
+    result = Bits(bin=REGISTER_FILE[Rs]).int - Bits(bin=REGISTER_FILE[Rt]).int 
+    REGISTER_FILE[Rd] = Bits(int=result, length=16)
     return REGISTER_FILE[Rd]
 
 
@@ -197,12 +201,12 @@ def mul_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    result = bin(REGISTER_FILE[RS] * REGISTER_FILE[Rt])[2:]
-
+    result = Bits(bin=REGISTER_FILE[Rs]).int * Bits(bin=REGISTER_FILE[Rt]).int
+    bin_result = bin(result)[2:]
     if len(result) > 16:
-        REGISTER_FILE[Rd] = int(result[len(result) - 16:len(result)])
+        REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
     else:
-        REGISTER_FILE[Rd] = int(result)
+        REGISTER_FILE[Rd] = bin_result
 
     return REGISTER_FILE[Rd]
 
@@ -217,7 +221,8 @@ def mod_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] % REGISTER_FILE[Rt]
+    result = Bits(bin=REGISTER_FILE[Rs]).int % Bits(bin=REGISTER_FILE[Rt]).int
+    REGISTER_FILE[Rd] = Bits(bin=result, length=16)
     return REGISTER_FILE[Rd]
 
 
@@ -231,20 +236,21 @@ def exp_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    result = bin(REGISTER_FILE[Rs] ** REGISTER_FILE[Rt])[2:]
+    result = Bits(bin=REGISTER_FILE[Rs]).int ** Bits(bin=REGISTER_FILE[Rt]).int
+    bin_result = bin(result)
 
     if len(result) > 16:
-        REGISTER_FILE[Rd] = int(result[len(result) - 16:len(result)])
+        REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
     else:
-        REGISTER_FILE[Rd] = int(result)
+        REGISTER_FILE[Rd] = int(bin_result)
 
     return REGISTER_FILE[Rd]
 
 
 def load_word(data_fields):
-    """LW instruction with op_code 01000.  Source is 
+    """LW instruction with op_code 01000.  Source is
        word_alligned
-    
+
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
@@ -252,15 +258,15 @@ def load_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs]] 
+    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs]]
 
     return REGISTER_FILE[Rd]
 
 
 def store_word(data_fields):
-    """SW instruction with op_code 01001.  Source is 
+    """SW instruction with op_code 01001.  Source is
        word_alligned
-    
+
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
@@ -272,39 +278,39 @@ def store_word(data_fields):
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
 
-def liz(data_fields): 
-    """SW instruction with op_code 01001.  Source is 
+def liz(data_fields):
+    """SW instruction with op_code 01001.  Source is
        word_alligned
-    
+
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
 
     Return: int
-    
-    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT 
+
+    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
-    REGISTER_FILE[Rd] = int(bin(Imm8)[2:].zfill(16))       
-    return REGISTER_FILE[Rd]  
+    REGISTER_FILE[Rd] = Imm8.zfill(16)
+    return REGISTER_FILE[Rd]
 
 
 def lis(data_fields):
-    """SW instruction with op_code 01001.  Source is 
+    """SW instruction with op_code 01001.  Source is
        word_alligned
-    
+
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
 
     Return: int
-    
-    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT 
+
+    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     msb = Imm8[0]
-    REGISTER_FILE[Rd] = int(bin(Imm8)[2:].rjust(16,msb))       
-    return REGISTER_FILE[Rd]  
+    REGISTER_FILE[Rd] = Imm8.rjust(16, msb)
+    return REGISTER_FILE[Rd]
 
 
 def lui(data_fields):
@@ -313,15 +319,27 @@ def lui(data_fields):
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
-    
+
     Return: int
 
     NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
-    REGISTER_FILE[Rd] = ''.join(bin(Imm8)[2:], bin(REGISTER_FILE[Rd])[2:])
-    return REGISTER_FILE[Rd] 
-     
+    REGISTER_FILE[Rd] = ''.join([Imm8, REGISTER_FILE[Rd]])
+    return REGISTER_FILE[Rd]
+
+
+def branch_positive(data_fields):
+    """BP instruction with op_code 10100
+
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+
+    Return: int
+    """
+        
+
 
 def xsim(config_file, input_file, output_file):
     """Run the simulation of the X isa for given
