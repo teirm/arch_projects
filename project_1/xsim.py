@@ -83,6 +83,42 @@ def init_register_file():
     REGISTER_FILE['r7'] = 0
 
 
+def init_statistics_dict():
+    """Initializes the statistics dictionary as a
+       JSON dictionary.
+
+       Keyword arguments:
+       None
+
+       Return: Dictionary
+    """
+    return {'registers':
+            [
+                {'r0': 0,
+                 'r1': 0,
+                 'r2': 0,
+                 'r3': 0,
+                 'r4': 0,
+                 'r5': 0,
+                 'r6': 0,
+                 'r7': 0, }
+            ],
+            'stats':
+                [
+                    {'add': 0, 'sub': 0, 'and': 0,
+                     'nor': 0, 'div': 0, 'mul': 0,
+                     'mod': 0, 'exp': 0, 'lw': 0,
+                     'sw': 0, 'liz': 0, 'lis': 0,
+                     'lui': 0, 'bp': 0, 'bn': 0,
+                     'bx': 0, 'bz': 0, 'jr': 0,
+                     'jal': 0, 'j': 0, 'halt': 1,
+                     'put': 0,
+                     'instructions': 0,
+                     'cycles': 0, }
+            ]
+            }
+
+
 def process_R_instruction(data_fields):
     """Processes R type instruction for ISA X
 
@@ -446,7 +482,7 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = Bits(int=program_counter+2, length=16).bin
+    REGISTER_FILE[Rd] = Bits(int=program_counter + 2, length=16).bin
     return Bits(bin=REGISTER_FILE[Rs]).int
 
 
@@ -472,11 +508,11 @@ def put_register(data_fields):
     data_fields -- the current instruction being parsed sans
                    the op_code [0:5]
 
-    Return: int 
+    Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     print(REGISTER_FILE[Rs])
-    return REGISTER_FILE[Rs] 
+    return REGISTER_FILE[Rs]
 
 
 def xsim(config_file, input_file, output_file):
@@ -490,6 +526,7 @@ def xsim(config_file, input_file, output_file):
 
        Return: None
     """
+    statistics_dict = init_statistics_dict()
     latency_dict = configure_latency(config_file)
     instruction_memory = parse_input(input_file)
     init_register_file()
@@ -546,8 +583,9 @@ def xsim(config_file, input_file, output_file):
             print('ERROR: UNRECOGNZIED OPCODE {}'.format(op_code),
                   file=sys.stderr)
             break
-
-        program_counter += 1
+    
+    with open(output_file, 'w') as ofp:
+        json.dump(statistics_dict, ofp) 
 
 if __name__ == '__main__':
 
