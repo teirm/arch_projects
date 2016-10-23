@@ -191,7 +191,7 @@ def and_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = REGISTER_FILE[Rs] & REGISTER_FILE[Rt]
+    REGISTER_FILE[Rd] = (Bits(bin=REGISTER_FILE[Rs]) & Bits(bin=REGISTER_FILE[Rt])).bin
     return REGISTER_FILE[Rd]
 
 
@@ -207,7 +207,7 @@ def nor_instruction(data_fields):
     NOTE: POTENTIAL BUG DUE TO TWOS-COMPLEMENT
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = ~(REGISTER_FILE[Rs] | REGISTER_FILE[Rt])
+    REGISTER_FILE[Rd] = (~(Bits(bin=REGISTER_FILE[Rs]) | Bits(bin=REGISTER_FILE[Rt]))).bin
     return REGISTER_FILE[Rd]
 
 

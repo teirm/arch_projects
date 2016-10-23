@@ -531,4 +531,47 @@ def test_sub_intruction_mixed():
     
     assert expected_value == Bits(bin=return_value).int
 
+def test_and_instruction():
+    """Tests the  and instruction with a positive 
+       and a negative value.
+    """
+    Rd = '101'
+    Rs = '011'
+    Rt = '001'
+    
+    right_operand = Bits(int=73, length=8).bin
+    left_operand = Bits(int=-83, length=8).bin
+    
+    left_data_fields = ''.join([Rs, left_operand])
+    right_data_fields = ''.join([Rt, right_operand])
+    
+    lis(left_data_fields)
+    lis(right_data_fields)
 
+    and_data_fields = ''.join([Rd, Rs, Rt])
+    
+    expected_value = (Bits(bin=right_operand) & Bits(bin=left_operand)).bin 
+    return_value = and_instruction(and_data_fields)
+    
+
+def test_nor_instruction():
+    """Tests the  and instruction with a positive 
+       and a negative value.
+    """
+    Rd = '101'
+    Rs = '011'
+    Rt = '001'
+    
+    right_operand = Bits(int=73, length=8).bin
+    left_operand = Bits(int=-83, length=8).bin
+    
+    left_data_fields = ''.join([Rs, left_operand])
+    right_data_fields = ''.join([Rt, right_operand])
+    
+    lis(left_data_fields)
+    lis(right_data_fields)
+
+    nor_data_fields = ''.join([Rd, Rs, Rt])
+    
+    expected_value = (~(Bits(bin=right_operand) | Bits(bin=left_operand))).bin 
+    return_value = nor_instruction(nor_data_fields)
