@@ -307,7 +307,21 @@ def lis(data_fields):
     return REGISTER_FILE[Rd]  
 
 
+def lui(data_fields):
+    """LUI instruction with op_code 10010
 
+    Keyword arguments:
+    data_fields -- the current instruction being parsed sans
+                   the op_code [0:5]
+    
+    Return: int
+
+    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
+    """
+    (Rd, Imm8) = process_I_instruction(data_fields)
+    REGISTER_FILE[Rd] = ''.join(bin(Imm8)[2:], bin(REGISTER_FILE[Rd])[2:])
+    return REGISTER_FILE[Rd] 
+     
 
 def xsim(config_file, input_file, output_file):
     """Run the simulation of the X isa for given
