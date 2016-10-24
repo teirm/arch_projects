@@ -111,12 +111,12 @@ def init_statistics_dict():
                      'sw': 0, 'liz': 0, 'lis': 0,
                      'lui': 0, 'bp': 0, 'bn': 0,
                      'bx': 0, 'bz': 0, 'jr': 0,
-                     'jal': 0, 'j': 0, 'halt': 1,
+                     'jal': 0, 'j': 0, 'halt': 0,
                      'put': 0,
                      'instructions': 0,
                      'cycles': 0, }
-            ]
-            }
+                ]
+           }
 
 
 def process_R_instruction(data_fields):
@@ -532,58 +532,146 @@ def xsim(config_file, input_file, output_file):
     instruction_memory = parse_input(input_file)
     init_register_file()
     program_counter = 0
+    clock_cycles = 0
+    instruction_count = 0
 
     while True:
         current_instruction = instruction_memory[program_counter]
         op_code = current_instruction[0:5]
+        data_fields = current_instruction[5:16]
+        instruction_count += 1
 
         if op_code == '00000':
+            add_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['add']
+            statistics_dict['stats'][0]['add'] += 1
             print('ADD')
         elif op_code == '00001':
+            sub_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['sub']
+            statistics_dict['stats'][0]['sub'] += 1
             print('SUB')
         elif op_code == '00010':
+            and_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['and']
+            statistics_dict['stats'][0]['and'] += 1
             print('AND')
         elif op_code == '00011':
+            nor_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['nor']
+            statistics_dict['stats'][0]['nor'] += 1
             print('NOR')
         elif op_code == '00101':
+            div_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['div']
+            statistics_dict['stats'][0]['div'] += 1
             print('DIV')
-        elif op_code == '00110':
+        elif op_code == '00100':
+            mul_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['mul']
+            statistics_dict['stats'][0]['mul'] += 1
             print('MUL')
+        elif op_code == '00110':
+            mod_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['mod']
+            statistics_dict['stats'][0]['mod'] += 1
+            print('MOD')
         elif op_code == '00111':
+            exp_instruction(data_fields)
+            program_counter += 1
+            clock_cycles += latency_dict['exp']
+            statistics_dict['stats'][0]['exp'] += 1
             print('EXP')
         elif op_code == '01000':
+            load_word(data_fields)
+            program_counter += 1
+            clock_cycles += 1
+            statistics_dict['stats'][0]['lw'] += 1
             print('LW')
         elif op_code == '01001':
+            store_word(data_fields)
+            program_counter += 1
+            clock_cycles += 1
+            statistics_dict['stats'][0]['sw'] += 1
             print('SW')
         elif op_code == '10000':
+            liz(data_fields)
+            program_counter += 1
+            clock_cycles += 1
+            statistics_dict['stats'][0]['liz'] += 1
             print('LIZ')
         elif op_code == '10001':
+            lis(data_fields)
+            program_counter += 1
+            clock_cycles += 1
+            statistics_dict['stats'][0]['lis'] += 1
             print('LIS')
         elif op_code == '10010':
+            lui(data_fields)
+            program_counter += 1
+            clock_cycles += 1
+            statistics_dict['stats'][0]['lui'] += 1
             print('LUI')
         elif op_code == '10100':
+            program_counter = branch_positive(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['bp'] += 1
             print('BP')
         elif op_code == '10101':
+            program_counter = branch_negative(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['bn'] += 1
             print('BN')
         elif op_code == '10110':
+            program_counter = branch_nzero(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['bx'] += 1
             print('BX')
         elif op_code == '10111':
+            program_counter = branch_zero(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['bz'] += 1
             print('BZ')
         elif op_code == '01100':
+            program_counter = jump_register(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['jr'] += 1
             print('JR')
         elif op_code == '10011':
+            program_counter = jump_and_link_register(
+                data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['jalr'] += 1
             print('JALR')
         elif op_code == '11000':
+            program_counter = jump_immediate(data_fields, program_counter)
+            clock_cycles += 1
+            statistics_dict['stats'][0]['j'] += 1
             print('J')
         elif op_code == '01101':
             print('HALT')
+            clock_cycles += 1
+            statistics_dict['stats'][0]['halt'] += 1
             break
         elif op_code == '01110':
             print('PUT')
+            clock_cycles += 1
+            program_counter += 1
+            statistics_dict['stats'][0]['put'] += 1
         else:
             print('ERROR: UNRECOGNZIED OPCODE {}'.format(op_code),
                   file=sys.stderr)
             break
+
+    statistics_dict['stats'][0]['instructions'] = instruction_count
+    statistics_dict['stats'][0]['cycles'] = clock_cycles
 
     with open(output_file, 'w') as ofp:
         json.dump(statistics_dict, ofp)
