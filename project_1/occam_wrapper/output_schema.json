@@ -1,0 +1,105 @@
+{
+    "registers": [
+        {
+            "r0":{
+                "type": "int"
+            },
+            "r1":{
+                "type": "int"
+            },
+            "r2":{
+                "type": "int"
+            },
+            "r3":{
+                "type": "int"
+            },
+            "r4":{
+                "type": "int"
+            },
+            "r5":{
+                "type": "int"
+            },
+            "r6":{
+                "type": "int"
+            },
+            "r7":{
+                "type": "int"
+            }
+        }],
+    "stats": [
+        {
+            "add": {
+                "type": "int"
+            },
+            "sub": {
+                "type": "int"
+            },
+            "and": {
+                "type": "int"
+            },
+            "nor": {
+                "type": "int"
+            },
+            "div": {
+                "type": "int"
+            },
+            "mul": {
+                "type": "int"
+            },
+            "mod": {
+                "type": "int"
+            },
+            "exp": {
+                "type": "int"
+            },
+            "lw": {
+                "type": "int"
+            },
+            "sw": {
+                "type": "int"
+            },
+            "liz": {
+                "type": "int"
+            },
+            "lis": {
+                "type": "int"
+            },
+            "lui": {
+                "type": "int"
+            },
+            "bp": {
+                "type": "int"
+            },
+            "bn": {
+                "type": "int"
+            },
+            "bx": {
+                "type": "int"
+            },
+            "bz": {
+                "type": "int"
+            },
+            "jr": {
+                "type": "int"
+            },
+            "jal": {
+                "type": "int"
+            },
+            "j": {
+                "type": "int"
+            },
+            "halt": {
+                "type": "int"
+            },
+            "put": {
+                "type": "int"
+            },
+            "instructions": {
+                "type": "int"
+            },
+            "cycles": {
+                "type": "int"
+            }
+        }
+    ]
+}
