@@ -435,7 +435,7 @@ def branch_positive(data_fields, program_counter):
     if check_value > 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
-        return program_counter + ls_bin.int
+        return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
 
@@ -458,7 +458,7 @@ def branch_negative(data_fields, program_counter):
     if check_value < 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
-        return program_counter + ls_bin.int
+        return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
 
@@ -481,7 +481,7 @@ def branch_nzero(data_fields, program_counter):
     if check_value is not 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
-        return program_counter + ls_bin.int
+        return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
 
@@ -504,7 +504,7 @@ def branch_zero(data_fields, program_counter):
     if check_value is 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
-        return program_counter + ls_bin.int
+        return int(ls_bin.int / WORD_SIZE) 
     else:
         return program_counter + 1
 
