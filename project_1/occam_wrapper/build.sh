@@ -1,7 +1,6 @@
 # Install dependencies
-apt-get install python-pip
-pip install --upgrade pip
-pip install bitstring
+apt-get install python3-pip
+pip3 install bitstring
 # Go into program directory
-cd x_simulator
+cd xsim_program 
 
