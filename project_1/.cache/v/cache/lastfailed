@@ -1,1 +1,6 @@
-{}
+{
+  "function_tests.py::test_jump_and_link": true,
+  "function_tests.py::test_jump_immediate": true,
+  "function_tests.py::test_jump_register_negative": true,
+  "function_tests.py::test_jump_register_positive": true
+}

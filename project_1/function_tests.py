@@ -1,5 +1,4 @@
-#/usr/bin/python
-
+#!/usr/bin/python
 """
 Project: xsim simulator testing
 Course: CS2410
@@ -9,7 +8,6 @@ Date: 23 October 2016
 import sys
 import pytest
 from xsim import *
-
 
 from bitstring import Bits
 
@@ -725,10 +723,10 @@ def test_lw_instruction():
     load_register_fields = ''.join([Rs, right_operand])
     lis(load_register_fields)
 
-    DATA_MEMORY[right_operand.zfill(16)] = '10010010'.zfill(16)
+    DATA_MEMORY[right_operand.zfill(16)] = 16 
     load_data_fields = ''.join([Rd, Rs, Rt])
 
-    expected_value = DATA_MEMORY[right_operand.zfill(16)]
+    expected_value = Bits(int=DATA_MEMORY[right_operand.zfill(16)], length=16).bin
     return_value = load_word(load_data_fields)
 
     assert expected_value == return_value

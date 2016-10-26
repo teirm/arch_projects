@@ -3,16 +3,22 @@
 Project: xsim simulator
 Course:  CS2410
 Author:  Cyrus Ramavarapu
-Date: 22 October 2016
+Date:    22 October 2016
 """
 
 import sys
 import json
 
+from pprint import pprint
 from bitstring import Bits
 
+# DEFINES
+WORD_SIZE = 16
+
+# GLOBALS
 REGISTER_FILE = {}
 DATA_MEMORY = {}
+STATISTICS_DICT = {}
 
 
 def configure_latency(config_file):
@@ -34,8 +40,7 @@ def configure_latency(config_file):
                       'exp': 1}
 
     with open(config_file) as configuration:
-        config_values = json.load(configuration)
-
+        config_values = json.load(configuration) 
     for key in config_values.keys():
         latency_values[key] = config_values[key]
 
@@ -83,6 +88,31 @@ def init_register_file():
     REGISTER_FILE['r7'] = ''.zfill(16)
 
 
+def update_register_statistics(dest_register, value):
+    """Updates the values in the register file
+       for output statistics.
+
+       Keyword arguments:
+       dest_register -- the destination register for the
+                        value
+       value -- the value to place in the destination
+                 register
+
+        Return: None
+    """
+    STATISTICS_DICT['registers'][0][dest_register] = value
+
+
+def get_register_stats(source_register):
+    """Acquires the int value from the stats dict
+    
+       Keyword arguments:
+       source_register -- the register value desired
+       
+       Return: None
+    """
+    return STATISTICS_DICT['registers'][0][source_register]
+
 def init_statistics_dict():
     """Initializes the statistics dictionary as a
        JSON dictionary.
@@ -92,31 +122,29 @@ def init_statistics_dict():
 
        Return: Dictionary
     """
-    return {'registers':
-            [
-                {'r0': 0,
-                 'r1': 0,
-                 'r2': 0,
-                 'r3': 0,
-                 'r4': 0,
-                 'r5': 0,
-                 'r6': 0,
-                 'r7': 0, }
-            ],
-            'stats':
-                [
-                    {'add': 0, 'sub': 0, 'and': 0,
-                     'nor': 0, 'div': 0, 'mul': 0,
-                     'mod': 0, 'exp': 0, 'lw': 0,
-                     'sw': 0, 'liz': 0, 'lis': 0,
-                     'lui': 0, 'bp': 0, 'bn': 0,
-                     'bx': 0, 'bz': 0, 'jr': 0,
-                     'jal': 0, 'j': 0, 'halt': 0,
-                     'put': 0,
-                     'instructions': 0,
-                     'cycles': 0, }
-                ]
-           }
+    STATISTICS_DICT['registers'] = [
+        {'r0': 0,
+         'r1': 0,
+         'r2': 0,
+         'r3': 0,
+         'r4': 0,
+         'r5': 0,
+         'r6': 0,
+         'r7': 0, }
+    ]
+
+    STATISTICS_DICT['stats'] = [
+        {'add': 0, 'sub': 0, 'and': 0,
+         'nor': 0, 'div': 0, 'mul': 0,
+         'mod': 0, 'exp': 0, 'lw': 0,
+         'sw': 0, 'liz': 0, 'lis': 0,
+                            'lui': 0, 'bp': 0, 'bn': 0,
+                            'bx': 0, 'bz': 0, 'jr': 0,
+                            'jal': 0, 'j': 0, 'halt': 0,
+                            'put': 0,
+                            'instructions': 0,
+                            'cycles': 0, }
+    ]
 
 
 def process_R_instruction(data_fields):
@@ -163,6 +191,7 @@ def add_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int + Bits(bin=REGISTER_FILE[Rt]).int
     REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
+    update_register_statistics(Rd, result)
     return REGISTER_FILE[Rd]
 
 
@@ -178,6 +207,7 @@ def sub_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int - Bits(bin=REGISTER_FILE[Rt]).int
     REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
+    update_register_statistics(Rd, result)
     return REGISTER_FILE[Rd]
 
 
@@ -195,6 +225,8 @@ def and_instruction(data_fields):
         Bits(
             bin=REGISTER_FILE[Rs]) & Bits(
             bin=REGISTER_FILE[Rt])).bin
+
+    update_register_statistics(Rd, REGISTER_FILE[Rd])
     return REGISTER_FILE[Rd]
 
 
@@ -212,6 +244,7 @@ def nor_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     REGISTER_FILE[Rd] = (~(Bits(bin=REGISTER_FILE[Rs]) |
                            Bits(bin=REGISTER_FILE[Rt]))).bin
+    update_register_statistics(Rd, REGISTER_FILE[Rd])
     return REGISTER_FILE[Rd]
 
 
@@ -227,6 +260,7 @@ def div_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int / Bits(bin=REGISTER_FILE[Rt]).int
     REGISTER_FILE[Rd] = Bits(int=int(result), length=16).bin
+    update_register_statistics(Rd, int(result))
     return REGISTER_FILE[Rd]
 
 
@@ -244,6 +278,7 @@ def mul_instruction(data_fields):
     result = Bits(bin=REGISTER_FILE[Rs]).int * Bits(bin=REGISTER_FILE[Rt]).int
     bin_result = Bits(int=result, length=32).bin
     REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
+    update_register_statistics(Rd, result)
 
     return REGISTER_FILE[Rd]
 
@@ -260,6 +295,7 @@ def mod_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     result = Bits(bin=REGISTER_FILE[Rs]).int % Bits(bin=REGISTER_FILE[Rt]).int
     REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
+    update_register_statistics(Rd, result)
     return REGISTER_FILE[Rd]
 
 
@@ -276,6 +312,7 @@ def exp_instruction(data_fields):
     result = Bits(bin=REGISTER_FILE[Rs]).int ** Bits(bin=REGISTER_FILE[Rt]).int
     bin_result = Bits(int=result, length=32).bin
     REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
+    update_register_statistics(Rd, result)
 
     return REGISTER_FILE[Rd]
 
@@ -291,8 +328,14 @@ def load_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)]
-
+    result  = DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)]
+    if result > 0:  
+        REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
+    else:
+        REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
+    
+    update_register_statistics(Rd, REGISTER_FILE[Rd])
+    
     return REGISTER_FILE[Rd]
 
 
@@ -307,7 +350,7 @@ def store_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = REGISTER_FILE[Rt]
+    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
 
@@ -320,11 +363,11 @@ def liz(data_fields):
                    the op_code [0:5]
 
     Return: int
-
-    NOTE: POSSIBLE ERROR DUE TO TWOs COMPLEMENT
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     REGISTER_FILE[Rd] = Imm8.zfill(16)
+    int_value = Bits(bin=REGISTER_FILE[Rd]).int
+    update_register_statistics(Rd, int_value)
     return REGISTER_FILE[Rd]
 
 
@@ -343,7 +386,8 @@ def lis(data_fields):
     (Rd, Imm8) = process_I_instruction(data_fields)
     msb = Imm8[0]
     REGISTER_FILE[Rd] = Imm8.rjust(16, msb)
-    print(REGISTER_FILE[Rd])
+    int_value = Bits(bin = REGISTER_FILE[Rd]).int 
+    update_register_statistics(Rd, int_value)
     return REGISTER_FILE[Rd]
 
 
@@ -361,6 +405,7 @@ def lui(data_fields):
     (Rd, Imm8) = process_I_instruction(data_fields)
     REGISTER_FILE[Rd] = ''.join([Imm8,
                                  Bits(bin=REGISTER_FILE[Rd][8:16]).bin])
+    update_register_statistics(Rd, REGISTER_FILE[Rd])
     return REGISTER_FILE[Rd]
 
 
@@ -466,7 +511,7 @@ def jump_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    return program_counter + Bits(bin=REGISTER_FILE[Rs]).int
+    return program_counter + int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
 
 
 def jump_and_link_register(data_fields, program_counter):
@@ -481,7 +526,7 @@ def jump_and_link_register(data_fields, program_counter):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     REGISTER_FILE[Rd] = Bits(int=program_counter + 1, length=16).bin
-    return (Bits(bin=REGISTER_FILE[Rs]) << 1).int
+    return int((Bits(bin=REGISTER_FILE[Rs]) << 1).int / WORD_SIZE)
 
 
 def jump_immediate(Imm11, program_counter):
@@ -499,7 +544,7 @@ def jump_immediate(Imm11, program_counter):
     ls_imm = Bits(bin=Imm11) << 1
     print(ls_imm.bin)
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
-    return Bits(bin=cat_bits).int
+    return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
 
 def put_register(data_fields):
@@ -527,10 +572,11 @@ def xsim(config_file, input_file, output_file):
 
        Return: None
     """
-    statistics_dict = init_statistics_dict()
     latency_dict = configure_latency(config_file)
     instruction_memory = parse_input(input_file)
+    init_statistics_dict()
     init_register_file()
+    pprint(REGISTER_FILE)
     program_counter = 0
     clock_cycles = 0
     instruction_count = 0
@@ -545,136 +591,136 @@ def xsim(config_file, input_file, output_file):
             add_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['add']
-            statistics_dict['stats'][0]['add'] += 1
+            STATISTICS_DICT['stats'][0]['add'] += 1
             print('ADD')
         elif op_code == '00001':
             sub_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['sub']
-            statistics_dict['stats'][0]['sub'] += 1
+            STATISTICS_DICT['stats'][0]['sub'] += 1
             print('SUB')
         elif op_code == '00010':
             and_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['and']
-            statistics_dict['stats'][0]['and'] += 1
+            STATISTICS_DICT['stats'][0]['and'] += 1
             print('AND')
         elif op_code == '00011':
             nor_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['nor']
-            statistics_dict['stats'][0]['nor'] += 1
+            STATISTICS_DICT['stats'][0]['nor'] += 1
             print('NOR')
-        elif op_code == '00101':
+        elif op_code == '00100':
             div_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['div']
-            statistics_dict['stats'][0]['div'] += 1
+            STATISTICS_DICT['stats'][0]['div'] += 1
             print('DIV')
-        elif op_code == '00100':
+        elif op_code == '00101':
             mul_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['mul']
-            statistics_dict['stats'][0]['mul'] += 1
+            STATISTICS_DICT['stats'][0]['mul'] += 1
             print('MUL')
         elif op_code == '00110':
             mod_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['mod']
-            statistics_dict['stats'][0]['mod'] += 1
+            STATISTICS_DICT['stats'][0]['mod'] += 1
             print('MOD')
         elif op_code == '00111':
             exp_instruction(data_fields)
             program_counter += 1
             clock_cycles += latency_dict['exp']
-            statistics_dict['stats'][0]['exp'] += 1
+            STATISTICS_DICT['stats'][0]['exp'] += 1
             print('EXP')
         elif op_code == '01000':
             load_word(data_fields)
             program_counter += 1
             clock_cycles += 1
-            statistics_dict['stats'][0]['lw'] += 1
+            STATISTICS_DICT['stats'][0]['lw'] += 1
             print('LW')
         elif op_code == '01001':
             store_word(data_fields)
             program_counter += 1
             clock_cycles += 1
-            statistics_dict['stats'][0]['sw'] += 1
+            STATISTICS_DICT['stats'][0]['sw'] += 1
             print('SW')
         elif op_code == '10000':
             liz(data_fields)
             program_counter += 1
             clock_cycles += 1
-            statistics_dict['stats'][0]['liz'] += 1
+            STATISTICS_DICT['stats'][0]['liz'] += 1
             print('LIZ')
         elif op_code == '10001':
             lis(data_fields)
             program_counter += 1
             clock_cycles += 1
-            statistics_dict['stats'][0]['lis'] += 1
+            STATISTICS_DICT['stats'][0]['lis'] += 1
             print('LIS')
         elif op_code == '10010':
             lui(data_fields)
             program_counter += 1
             clock_cycles += 1
-            statistics_dict['stats'][0]['lui'] += 1
+            STATISTICS_DICT['stats'][0]['lui'] += 1
             print('LUI')
         elif op_code == '10100':
             program_counter = branch_positive(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['bp'] += 1
+            STATISTICS_DICT['stats'][0]['bp'] += 1
             print('BP')
         elif op_code == '10101':
             program_counter = branch_negative(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['bn'] += 1
+            STATISTICS_DICT['stats'][0]['bn'] += 1
             print('BN')
         elif op_code == '10110':
             program_counter = branch_nzero(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['bx'] += 1
+            STATISTICS_DICT['stats'][0]['bx'] += 1
             print('BX')
         elif op_code == '10111':
             program_counter = branch_zero(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['bz'] += 1
+            STATISTICS_DICT['stats'][0]['bz'] += 1
             print('BZ')
         elif op_code == '01100':
             program_counter = jump_register(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['jr'] += 1
+            STATISTICS_DICT['stats'][0]['jr'] += 1
             print('JR')
         elif op_code == '10011':
             program_counter = jump_and_link_register(
                 data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['jalr'] += 1
+            STATISTICS_DICT['stats'][0]['jalr'] += 1
             print('JALR')
         elif op_code == '11000':
             program_counter = jump_immediate(data_fields, program_counter)
             clock_cycles += 1
-            statistics_dict['stats'][0]['j'] += 1
+            STATISTICS_DICT['stats'][0]['j'] += 1
             print('J')
         elif op_code == '01101':
             print('HALT')
             clock_cycles += 1
-            statistics_dict['stats'][0]['halt'] += 1
+            STATISTICS_DICT['stats'][0]['halt'] += 1
             break
         elif op_code == '01110':
             print('PUT')
             clock_cycles += 1
             program_counter += 1
-            statistics_dict['stats'][0]['put'] += 1
+            STATISTICS_DICT['stats'][0]['put'] += 1
         else:
             print('ERROR: UNRECOGNZIED OPCODE {}'.format(op_code),
                   file=sys.stderr)
             break
 
-    statistics_dict['stats'][0]['instructions'] = instruction_count
-    statistics_dict['stats'][0]['cycles'] = clock_cycles
+    STATISTICS_DICT['stats'][0]['instructions'] = instruction_count
+    STATISTICS_DICT['stats'][0]['cycles'] = clock_cycles
 
     with open(output_file, 'w') as ofp:
-        json.dump(statistics_dict, ofp)
+        json.dump(STATISTICS_DICT, ofp)
 
 if __name__ == '__main__':
 
@@ -682,8 +728,8 @@ if __name__ == '__main__':
         print("Usage: ./xsim inputfile configfile outputstatsfile")
         exit(1)
 
-    CONFIG_FILE = sys.argv[1]
-    INPUT_FILE = sys.argv[2]
+    INPUT_FILE = sys.argv[1]
+    CONFIG_FILE = sys.argv[2]
     OUTPUT_FILE = sys.argv[3]
 
     xsim(CONFIG_FILE, INPUT_FILE, OUTPUT_FILE)
