@@ -752,4 +752,4 @@ def test_sw_instruction():
     expected_value = 16
     return_value = store_word(store_word_fields)
 
-    assert expected_value == Bits(bin=return_value).int
+    assert expected_value == return_value 

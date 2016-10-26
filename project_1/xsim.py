@@ -226,7 +226,8 @@ def and_instruction(data_fields):
             bin=REGISTER_FILE[Rs]) & Bits(
             bin=REGISTER_FILE[Rt])).bin
 
-    update_register_statistics(Rd, REGISTER_FILE[Rd])
+    int_result = Bits(bin=REGISTER_FILE[Rd]).bin
+    update_register_statistics(Rd, int_result)
     return REGISTER_FILE[Rd]
 
 
@@ -244,7 +245,8 @@ def nor_instruction(data_fields):
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     REGISTER_FILE[Rd] = (~(Bits(bin=REGISTER_FILE[Rs]) |
                            Bits(bin=REGISTER_FILE[Rt]))).bin
-    update_register_statistics(Rd, REGISTER_FILE[Rd])
+    int_result = Bits(bin=REGISTER_FILE[Rd]).bin
+    update_register_statistics(Rd, int_result)
     return REGISTER_FILE[Rd]
 
 
@@ -309,10 +311,17 @@ def exp_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    print(Rd)
+    print(Rs)
+    print(Rt) 
+    
+    print(Bits(bin=REGISTER_FILE[Rs]).int)
+    print(Bits(bin=REGISTER_FILE[Rt]).int) 
     result = Bits(bin=REGISTER_FILE[Rs]).int ** Bits(bin=REGISTER_FILE[Rt]).int
     bin_result = Bits(int=result, length=32).bin
     REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
-    update_register_statistics(Rd, result)
+    stored_result = Bits(bin=REGISTER_FILE[Rd]).int
+    update_register_statistics(Rd, stored_result)
 
     return REGISTER_FILE[Rd]
 
@@ -355,7 +364,7 @@ def store_word(data_fields):
 
 
 def liz(data_fields):
-    """SW instruction with op_code 01001.  Source is
+    """LIS instruction with op_code 01001.  Source is
        word_alligned
 
     Keyword arguments:
@@ -372,7 +381,7 @@ def liz(data_fields):
 
 
 def lis(data_fields):
-    """SW instruction with op_code 01001.  Source is
+    """LIS instruction with op_code 01001.  Source is
        word_alligned
 
     Keyword arguments:
