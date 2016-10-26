@@ -140,7 +140,7 @@ def init_statistics_dict():
          'sw': 0, 'liz': 0, 'lis': 0,
                             'lui': 0, 'bp': 0, 'bn': 0,
                             'bx': 0, 'bz': 0, 'jr': 0,
-                            'jal': 0, 'j': 0, 'halt': 0,
+                            'jalr': 0, 'j': 0, 'halt': 0,
                             'put': 0,
                             'instructions': 0,
                             'cycles': 0, }
@@ -520,7 +520,7 @@ def jump_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    return program_counter + int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
+    return int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
 
 
 def jump_and_link_register(data_fields, program_counter):
@@ -534,12 +534,12 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = Bits(int=program_counter + 1, length=16).bin
-    return int((Bits(bin=REGISTER_FILE[Rs]) << 1).int / WORD_SIZE)
+    REGISTER_FILE[Rd] = Bits(int=(program_counter + 1) * WORD_SIZE, length=16).bin
+    return int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
 
 
 def jump_immediate(Imm11, program_counter):
-    """JALR instruction with op_code 10011
+    """JIMM instruction with op_code 10011
 
     Keyword arguments:
     data_fields -- the current instruction being parsed sans
@@ -670,6 +670,7 @@ def xsim(config_file, input_file, output_file):
             print('LIS')
         elif op_code == '10010':
             lui(data_fields)
+            print(REGISTER_FILE['r1'])
             program_counter += 1
             clock_cycles += 1
             STATISTICS_DICT['stats'][0]['lui'] += 1
