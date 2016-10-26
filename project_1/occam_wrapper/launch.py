@@ -10,8 +10,8 @@ scripts_path    = os.path.dirname(__file__)
 job_path        = os.getcwd()
 object_path = "/occam/%s-%s" % (object.id(), object.revision())
 # Path to your executable
-executable_path="dummy_program/dummy"
-
+executable_path="xsim_program/xsim.py"
+venv_path = "xsim_program/occam_venv/bin/python3.5"
 
 #########################################################
 #                                                       #
@@ -55,7 +55,8 @@ output_full_path = os.path.join(object.path(), output_file_path)
 #                                                       #
 #########################################################
 executable=os.path.join(object_path,executable_path)
-args=[
+full_venv_path = os.path.join(object_path, venv_path)
+args=["python3",
     executable,
     input_file_path,
     input_configurations_path,
