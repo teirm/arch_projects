@@ -1,0 +1,1 @@
+{"registers": [{"r6": 0, "r4": 0, "r0": 8, "r5": 0, "r1": 0, "r2": 6, "r3": 0, "r7": 0}], "stats": [{"jal": 0, "nor": 0, "instructions": 4, "bn": 0, "lw": 0, "lis": 0, "halt": 1, "lui": 0, "j": 0, "cycles": 4, "and": 0, "bp": 0, "add": 0, "exp": 0, "liz": 2, "bx": 1, "sub": 0, "mod": 0, "bz": 0, "put": 0, "sw": 0, "div": 0, "jr": 0, "mul": 0}]}
