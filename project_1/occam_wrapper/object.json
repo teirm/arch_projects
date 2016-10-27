@@ -1,0 +1,36 @@
+{
+  "id": "1df36e92-9b33-11e6-a08f-0800272cf9f2",
+  "type": "simulator",
+  "name": "isax_Sim",
+  "configurations": [
+	{
+		"schema": "config_schema.json",
+		"file": "input.json",
+		"name": "Configuration Options"
+	}
+   ],
+   "inputs": [
+	{
+		"type": "volume"
+	}
+   ],
+   "outputs": [
+	{
+		"createIn": "new_output",
+		"file": "statistics.json",
+		"schema": "output_schema.json",
+		"type": "application/json"
+	}
+   ],
+   "architecture": "x86-64",
+   "environment": "ubuntu:14.04",
+   "build": {
+	"script": "build.sh",
+	"language": "bash"
+   },
+   "run": {
+	"script": "launch.py",
+	"version": "3.3.0",
+	"language": "python"
+   }   
+}

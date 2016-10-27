@@ -56,6 +56,7 @@ output_full_path = os.path.join(object.path(), output_file_path)
 #########################################################
 executable=os.path.join(object_path,executable_path)
 full_venv_path = os.path.join(object_path, venv_path)
+print input_configurations_path
 args=["python3",
     executable,
     input_file_path,

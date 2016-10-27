@@ -20,31 +20,31 @@
 	"nor":{
 		"type":"int",
 		"default": 1,
-		"label": "And Latency",
+		"label": "Nor Latency",
 		"description": "The number of clock cycles for a NOR (DEFAULT: 1)"
       },
 	"div":{
 		"type":"int",
 		"default": 1,
-		"label": "And Latency",
+		"label": "Div Latency",
 		"description": "The number of clock cycles for a DIV (DEFAULT: 1)"
       },
 	"mul":{
 		"type":"int",
 		"default": 1,
-		"label": "And Latency",
+		"label": "Mul Latency",
 		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
       },
 	"mod":{
 		"type":"int",
 		"default": 1,
-		"label": "And Latency",
+		"label": "Mod Latency",
 		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
       },
 	"exp":{
 		"type":"int",
 		"default": 1,
-		"label": "And Latency",
+		"label": "Exp Latency",
 		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
       }
 }
