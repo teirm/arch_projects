@@ -65,6 +65,10 @@ Occam configuration files are availble in the directory
 directory as the 'object.json' file.  The code should
 be placed one directory below these files.
 
+The directory hierarchy used during OCCAM tests is provided
+within the 'occam_wrapper' directory.  Please, model future
+setups in a similar manner.
+
 Bugs and Issues
 ---------------
 All instructions appear to work properly even when used together;
@@ -97,6 +101,6 @@ and interpretation of functional requirements.
    default in the Ubuntu VM.  Docker seems to take a very long
    to pull a moderately sized file (~40 Mb).  It might seem to have 
    hung; however, it will eventually proceed.  Grab a drink or 
-   browse the web in the mean time.
+   browse the web (I hear it has kittens and puppies) in the mean time.
 
 
