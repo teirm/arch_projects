@@ -13,7 +13,7 @@ from pprint import pprint
 from bitstring import Bits
 
 # DEFINES
-WORD_SIZE = 16
+WORD_SIZE = 1
 
 # GLOBALS
 REGISTER_FILE = {}
@@ -336,7 +336,7 @@ def load_word(data_fields):
     if result > 0:
         REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
     else:
-        REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
+        REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
 
     update_register_statistics(Rd, result)
 
@@ -429,8 +429,10 @@ def branch_positive(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
 
     if check_value > 0:
-        z_ext = Imm8.zfill(16)
-        ls_bin = Bits(bin=z_ext) << 1
+        ls_imm8 = (Bits(bin=Imm8)).bin
+        z_ext = (ls_imm8).zfill(16)
+        ls_bin = Bits(bin=z_ext) 
+        print(int(ls_bin.int / WORD_SIZE)) 
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -451,8 +453,10 @@ def branch_negative(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
 
     if check_value < 0:
-        z_ext = Imm8.zfill(16)
-        ls_bin = Bits(bin=z_ext) << 1
+        ls_imm8 = (Bits(bin=Imm8)).bin
+        z_ext = (ls_imm8).zfill(16)
+        ls_bin = Bits(bin=z_ext) 
+        print(int(ls_bin.int / WORD_SIZE)) 
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -472,8 +476,9 @@ def branch_nzero(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
 
     if check_value is not 0:
-        z_ext = Imm8.zfill(16)
-        ls_bin = Bits(bin=z_ext) << 1
+        ls_imm8 = (Bits(bin=Imm8)).bin
+        z_ext = (ls_imm8).zfill(16)
+        ls_bin = Bits(bin=z_ext) 
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -495,11 +500,14 @@ def branch_zero(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
 
     if check_value is 0:
-        z_ext = Imm8.zfill(16)
-        ls_bin = Bits(bin=z_ext) << 1
+        print("VALUE OF IMM8")
+        print(Imm8)
+        ls_imm8 = (Bits(bin=Imm8)).bin
+        z_ext = (ls_imm8).zfill(16)
+        ls_bin = Bits(bin=z_ext) 
         return int(ls_bin.int / WORD_SIZE)
     else:
-        return program_counter + 1
+        return program_counter + 1 
 
 
 def jump_register(data_fields, program_counter):
@@ -533,7 +541,7 @@ def jump_and_link_register(data_fields, program_counter):
             1) *
         WORD_SIZE,
         length=16).bin
-    return int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
+    return int((Bits(bin=REGISTER_FILE[Rs]).int  / WORD_SIZE))
 
 
 def jump_immediate(Imm11, program_counter):
@@ -587,6 +595,7 @@ def xsim(config_file, input_file, output_file):
     instruction_count = 0
 
     while True:
+        print(program_counter)
         current_instruction = instruction_memory[program_counter]
         op_code = current_instruction[0:5]
         data_fields = current_instruction[5:16]
