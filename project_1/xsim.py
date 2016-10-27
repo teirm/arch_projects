@@ -538,7 +538,7 @@ def jump_and_link_register(data_fields, program_counter):
     REGISTER_FILE[Rd] = Bits(
         int=int(
             program_counter +
-            2) *
+            1) *
         WORD_SIZE,
         length=16).bin
     return int((Bits(bin=REGISTER_FILE[Rs]).int / 2))
@@ -555,9 +555,10 @@ def jump_immediate(Imm11, program_counter):
     Return: int
     """
     pc_bits = Bits(int=program_counter*2, length=16).bin
-    ls_imm = Bits(bin=Imm11) << 1
+    ls_imm = Bits(bin=Imm11) 
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
-    return int(Bits(bin=cat_bits).int / 2 / WORD_SIZE)
+    sys.exit(0) 
+    return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
 
 def put_register(data_fields):
