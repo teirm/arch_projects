@@ -11,6 +11,10 @@ from xsim import *
 
 from bitstring import Bits
 
+#DEFINES
+
+WORD_SIZE = 16
+
 
 def init():
     config_file = 'configs/config_1.json'
@@ -108,10 +112,10 @@ def test_branch_positive_taken():
     data_fields = ''.join([Rd, cond])
     liz(data_fields)
 
-    Imm8 = Bits(uint=20, length=8).bin
+    Imm8 = Bits(uint=32, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
-    expected_value = program_counter + 40
+    expected_value = 4 
     return_value = branch_positive(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -129,7 +133,7 @@ def test_branch_positive_not_taken():
     data_fields = ''.join([Rd, cond])
     lis(data_fields)
 
-    Imm8 = Bits(uint=20, length=8).bin
+    Imm8 = Bits(uint=32, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
     expected_value = program_counter + 1
@@ -153,7 +157,7 @@ def test_branch_negative_taken():
     Imm8 = Bits(uint=20, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
-    expected_value = program_counter + 40
+    expected_value = int(40 / 16)
     return_value = branch_negative(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -195,7 +199,7 @@ def test_branch_not_zero_positive():
     Imm8 = Bits(uint=20, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
-    expected_value = program_counter + 40
+    expected_value = int(40 / WORD_SIZE)
     return_value = branch_nzero(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -216,7 +220,7 @@ def test_branch_not_zero_negative():
     Imm8 = Bits(uint=20, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
-    expected_value = program_counter + 40
+    expected_value = int(40 / WORD_SIZE)
     return_value = branch_nzero(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -255,7 +259,7 @@ def test_branch_zero_taken():
     Imm8 = Bits(uint=60, length=8).bin
     data_fields = ''.join([Rd, Imm8])
 
-    expected_value = program_counter + 120
+    expected_value = int(120 / WORD_SIZE)
     return_value = branch_zero(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -288,7 +292,7 @@ def test_branch_zero_not_taken_negative():
     """
     init()
     Rd = '101'
-    cond = Bits(int=-33, length=8).bin
+    cond = Bits(int=-32, length=8).bin
     program_counter = 10
 
     data_fields = ''.join([Rd, cond])
@@ -313,13 +317,13 @@ def test_jump_register_negative():
     Rt = '111'
     program_counter = 10
 
-    jump_value = Bits(int=-3, length=8).bin
+    jump_value = Bits(int=-48, length=8).bin
     load_data_fields = ''.join([Rs, jump_value])
     lis(load_data_fields)
 
     data_fields = ''.join([Rd, Rs, Rt])
 
-    expected_value = program_counter - 3
+    expected_value = -3
     return_value = jump_register(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -335,13 +339,13 @@ def test_jump_register_positive():
     Rt = '111'
     program_counter = 10
 
-    jump_value = Bits(int=3, length=8).bin
+    jump_value = Bits(int=48, length=8).bin
     load_data_fields = ''.join([Rs, jump_value])
     lis(load_data_fields)
 
     data_fields = ''.join([Rd, Rs, Rt])
 
-    expected_value = program_counter + 3
+    expected_value = 3
     return_value = jump_register(data_fields, program_counter)
 
     assert expected_value == return_value
@@ -356,17 +360,17 @@ def test_jump_and_link():
     program_counter = 10
 
 #   Load only an 8 bit value because that is what liz does
-    jump_value = Bits(uint=211, length=8).bin
+    jump_value = Bits(uint=160, length=8).bin
     load_data_fields = ''.join([Rs, jump_value])
     liz(load_data_fields)
 
     data_fields = ''.join([Rd, Rs, Rt])
 
-    expected_value = 422
+    expected_value = 10 
     return_value = jump_and_link_register(data_fields, program_counter)
 
     assert expected_value == return_value
-    assert Bits(bin=REGISTER_FILE['r6']).int == 11
+    assert Bits(bin=REGISTER_FILE['r6']).int == 11 * 16
 
 
 def test_jump_immediate():
@@ -378,7 +382,7 @@ def test_jump_immediate():
     program_counter = 23
     pc_bits = Bits(int=23, length=16)
 
-    expected_value = 462
+    expected_value = int(462 / 16)
     return_value = jump_immediate(imm11, program_counter)
 
     assert expected_value == return_value
