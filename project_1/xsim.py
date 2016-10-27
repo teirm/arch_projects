@@ -40,7 +40,7 @@ def configure_latency(config_file):
                       'exp': 1}
 
     with open(config_file) as configuration:
-        config_values = json.load(configuration) 
+        config_values = json.load(configuration)
     for key in config_values.keys():
         latency_values[key] = config_values[key]
 
@@ -105,13 +105,14 @@ def update_register_statistics(dest_register, value):
 
 def get_register_stats(source_register):
     """Acquires the int value from the stats dict
-    
+
        Keyword arguments:
        source_register -- the register value desired
-       
+
        Return: None
     """
     return STATISTICS_DICT['registers'][0][source_register]
+
 
 def init_statistics_dict():
     """Initializes the statistics dictionary as a
@@ -311,12 +312,6 @@ def exp_instruction(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    print(Rd)
-    print(Rs)
-    print(Rt) 
-    
-    print(Bits(bin=REGISTER_FILE[Rs]).int)
-    print(Bits(bin=REGISTER_FILE[Rt]).int) 
     result = Bits(bin=REGISTER_FILE[Rs]).int ** Bits(bin=REGISTER_FILE[Rt]).int
     bin_result = Bits(int=result, length=32).bin
     REGISTER_FILE[Rd] = bin_result[len(bin_result) - 16:len(bin_result)]
@@ -337,14 +332,14 @@ def load_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    result  = DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)]
-    if result > 0:  
+    result = DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)]
+    if result > 0:
         REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
     else:
         REGISTER_FILE[Rd] = Bits(int=result, length=16).bin
-    
-    update_register_statistics(Rd, REGISTER_FILE[Rd])
-    
+
+    update_register_statistics(Rd, result)
+
     return REGISTER_FILE[Rd]
 
 
@@ -360,6 +355,7 @@ def store_word(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)
+
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
 
@@ -395,7 +391,7 @@ def lis(data_fields):
     (Rd, Imm8) = process_I_instruction(data_fields)
     msb = Imm8[0]
     REGISTER_FILE[Rd] = Imm8.rjust(16, msb)
-    int_value = Bits(bin = REGISTER_FILE[Rd]).int 
+    int_value = Bits(bin=REGISTER_FILE[Rd]).int
     update_register_statistics(Rd, int_value)
     return REGISTER_FILE[Rd]
 
@@ -430,7 +426,6 @@ def branch_positive(data_fields, program_counter):
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
-    print(check_value)
 
     if check_value > 0:
         z_ext = Imm8.zfill(16)
@@ -450,7 +445,6 @@ def branch_negative(data_fields, program_counter):
 
     Return: int
 
-    NOTE: UNSURE ABOUT RETURN PC+2
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
@@ -472,8 +466,6 @@ def branch_nzero(data_fields, program_counter):
     program_counter -- the current value of PC
 
     Return: int
-
-    NOTE: UNSURE ABOUT RETURN PC+2
     """
     (Rd, Imm8) = process_I_instruction(data_fields)
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
@@ -504,7 +496,7 @@ def branch_zero(data_fields, program_counter):
     if check_value is 0:
         z_ext = Imm8.zfill(16)
         ls_bin = Bits(bin=z_ext) << 1
-        return int(ls_bin.int / WORD_SIZE) 
+        return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
 
@@ -534,7 +526,12 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    REGISTER_FILE[Rd] = Bits(int=(program_counter + 1) * WORD_SIZE, length=16).bin
+    REGISTER_FILE[Rd] = Bits(
+        int=(
+            program_counter +
+            1) *
+        WORD_SIZE,
+        length=16).bin
     return int(Bits(bin=REGISTER_FILE[Rs]).int / WORD_SIZE)
 
 
@@ -549,9 +546,7 @@ def jump_immediate(Imm11, program_counter):
     Return: int
     """
     pc_bits = Bits(int=program_counter, length=16).bin
-    print(pc_bits)
     ls_imm = Bits(bin=Imm11) << 1
-    print(ls_imm.bin)
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
     return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
@@ -566,7 +561,8 @@ def put_register(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    print(REGISTER_FILE[Rs])
+    int_value = get_register_stats(Rs)
+    print(int_value)  
     return REGISTER_FILE[Rs]
 
 
@@ -585,7 +581,6 @@ def xsim(config_file, input_file, output_file):
     instruction_memory = parse_input(input_file)
     init_statistics_dict()
     init_register_file()
-    pprint(REGISTER_FILE)
     program_counter = 0
     clock_cycles = 0
     instruction_count = 0
@@ -670,7 +665,6 @@ def xsim(config_file, input_file, output_file):
             print('LIS')
         elif op_code == '10010':
             lui(data_fields)
-            print(REGISTER_FILE['r1'])
             program_counter += 1
             clock_cycles += 1
             STATISTICS_DICT['stats'][0]['lui'] += 1
@@ -717,6 +711,7 @@ def xsim(config_file, input_file, output_file):
             STATISTICS_DICT['stats'][0]['halt'] += 1
             break
         elif op_code == '01110':
+            put_register(data_fields) 
             print('PUT')
             clock_cycles += 1
             program_counter += 1
