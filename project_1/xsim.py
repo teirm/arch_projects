@@ -410,7 +410,8 @@ def lui(data_fields):
     (Rd, Imm8) = process_I_instruction(data_fields)
     REGISTER_FILE[Rd] = ''.join([Imm8,
                                  Bits(bin=REGISTER_FILE[Rd][8:16]).bin])
-    update_register_statistics(Rd, REGISTER_FILE[Rd])
+    int_value = Bits(bin=REGISTER_FILE[Rd]).int
+    update_register_statistics(Rd, int_value)
     return REGISTER_FILE[Rd]
 
 
