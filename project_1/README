@@ -1,0 +1,102 @@
+Project: Functional Instruction Set Simulator
+Course:  CS2410
+Author:  Cyrus Ramavarapu
+Date:    26 October 2016
+==================================================
+
+Purpose:
+--------
+
+Simulate the instruction set described in the write up
+under configurable conditions and generate statistics
+describing the simulation.
+
+Consume and output data in a form compatible with the
+OCCAM SVCS for processing and analysis.
+
+
+Dependencies:
+-------------
+
+Python3
+pip3
+bitstring3
+
+The simulator is written in Python3 and uses the bistring
+module to allow for easy manipulation of bitstrings. The
+bitstring module is available using pip3.
+
+All dependencies should be available in the through the
+OCCAM object; however, the list is present here in case
+the code needs to be run outside of OCCAM.
+
+
+Running (Stand Alone):
+----------------------
+Assuming all the dependencies are satisfied:
+
+   python3 xsim.py <input_file> <config_file> <outputstats_file> 
+
+
+Testing:
+--------
+Requires: pytest-3.0.3
+
+Basic unit tests for all operations are available in
+'function_tests.py'.  These tests check primarily
+the minimum functionality of each instruction and that
+the instruction, in isolation, produces correct output.
+
+
+Sample Input:
+-------------
+Hex traces of several small progams are provided in the input
+directory.  Each of these were bone-headedly named 'input_#.txt'
+and superficially provide no information regarding what they do.
+Maybe one day I will go back and given them really interesting
+names; However, there is little to fear here because each trace
+has comments and even diagrams explaining the expected execution.
+
+
+OCCAM:
+------
+Occam configuration files are availble in the directory
+'occam_wrapper' and should be placed within the same
+directory as the 'object.json' file.  The code should
+be placed one directory below these files.
+
+Bugs and Issues
+---------------
+All instructions appear to work properly even when used together;
+however, a few assumptions were made regarding the instructions
+and interpretation of functional requirements.
+
+1) Page 1 describes a 'jal' instruction that has an immediate that
+   is shifted left 1.  The table of instructions on page 2 makes 
+   no mention of 'jal' but has 'jalr'.  The 'jalr' instruction does
+   not take any immediates.  As a result nothing was shifted when this
+   instruction is used.
+
+2) All addressing is done with respect to the bit value, but these
+   values are translated to the appropriate program counter to reference
+   into the array by dividing by the WORD_SIZE which in this case is 
+   16 bits.
+
+3) According to the ISA description, memory loads and stores require word
+   allignment.  It was assumed that this is the responsibility of the
+   programmer.  A python dictionary represents memory and will therefore
+   take any possible <key, value> pair.
+
+4) The output JSON file is not ordered and will display registers in a 
+   random order as well as the counts of instructions and number of cycles.
+   This is a consequence of python dictionarys not maintaining order 
+   across executions.  The dictionary used to hold these statistics is dumpped
+   directly to a JSON.
+
+6) OCCAM build times can be slightly lengthy because python3 is not 
+   default in the Ubuntu VM.  Docker seems to take a very long
+   to pull a moderately sized file (~40 Mb).  It might seem to have 
+   hung; however, it will eventually proceed.  Grab a drink or 
+   browse the web in the mean time.
+
+
