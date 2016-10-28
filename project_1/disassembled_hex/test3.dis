@@ -1,0 +1,33 @@
+LIS r1, -1
+LIS r1, -1
+LIS r1, -1
+PUT r1
+LIS r1, 1
+PUT r1
+LIS r0, 1
+BP r0, 9
+HALT
+LIS r0, -1
+BP r0, 8
+LIS r2, 2
+PUT r2
+BN r0, 15
+HALT
+LIS r0, 1
+BN r0, 14
+LIS r3, 3
+PUT r3
+LIS r0, 0
+BZ r0, 22
+HALT
+LIS r0, 1
+BZ r0, 21
+LIS r4, 4
+PUT r4
+BX r0, 28
+HALT
+LIS r0, 0
+BX r0, 27
+LIS r5, 5
+PUT r5
+HALT

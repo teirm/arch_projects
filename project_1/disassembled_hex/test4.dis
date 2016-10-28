@@ -1,0 +1,16 @@
+LIS r0, 10
+LIS r1, 100
+SW r0, r0, r1
+LIS r2, 10
+LW r3, r2, r0
+LIS r4, 24
+JALR r5, r4, r0
+LIS r7, 30
+PUT r7
+HALT
+HALT
+HALT
+LIS r6, 20
+PUT r6
+JR r0, r5, r0
+HALT
