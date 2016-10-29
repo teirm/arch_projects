@@ -532,12 +532,15 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
+    
+    int_value = program_counter + 1 
+     
     REGISTER_FILE[Rd] = Bits(
-        int=int(
-            program_counter +
-            1) *
-        WORD_SIZE,
+        int=int_value,
         length=16).bin
+      
+    update_register_statistics(Rd, int_value)
+    
     return int((Bits(bin=REGISTER_FILE[Rs]).int / 2))
 
 
@@ -554,7 +557,6 @@ def jump_immediate(Imm11, program_counter):
     pc_bits = Bits(int=program_counter*2, length=16).bin
     ls_imm = Bits(bin=Imm11) 
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
-    sys.exit(0) 
     return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
 
@@ -696,7 +698,11 @@ def xsim(config_file, input_file, output_file):
             STATISTICS_DICT['stats'][0]['bz'] += 1
             print('BZ')
         elif op_code == '01100':
+            print('VALUE OF R5 PRIOR TO JR')
+            print(REGISTER_FILE['r5'])
             program_counter = jump_register(data_fields, program_counter)
+            print('VALUE OF R5 AFTER TO JR')
+            print(REGISTER_FILE['r5'])
             clock_cycles += 1
             STATISTICS_DICT['stats'][0]['jr'] += 1
             print('JR')
