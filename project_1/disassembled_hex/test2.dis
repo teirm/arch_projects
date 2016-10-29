@@ -1,0 +1,19 @@
+LIS r0, 10
+LIS r1, -1
+ADD r2, r0, r1
+PUT r2
+SUB r3, r0, r1
+PUT r3
+LIS r1, 1
+ADD r4, r0, r1
+PUT r4
+SUB r5, r0, r1
+PUT r5
+LIS r1, 2
+DIV r6, r0, r1
+PUT r6
+EXP r7, r1, r1
+PUT r7
+MUL r0, r0, r1
+PUT r0
+HALT

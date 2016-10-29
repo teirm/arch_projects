@@ -432,7 +432,6 @@ def branch_positive(data_fields, program_counter):
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
         ls_bin = Bits(bin=z_ext) 
-        print(int(ls_bin.int / WORD_SIZE)) 
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -456,7 +455,6 @@ def branch_negative(data_fields, program_counter):
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
         ls_bin = Bits(bin=z_ext) 
-        print(int(ls_bin.int / WORD_SIZE)) 
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -500,7 +498,6 @@ def branch_zero(data_fields, program_counter):
     check_value = Bits(bin=REGISTER_FILE[Rd]).int
 
     if check_value is 0:
-        print("VALUE OF IMM8")
         print(Imm8)
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
@@ -538,7 +535,7 @@ def jump_and_link_register(data_fields, program_counter):
     REGISTER_FILE[Rd] = Bits(
         int=int(
             program_counter +
-            2) *
+            1) *
         WORD_SIZE,
         length=16).bin
     return int((Bits(bin=REGISTER_FILE[Rs]).int / 2))
@@ -555,9 +552,10 @@ def jump_immediate(Imm11, program_counter):
     Return: int
     """
     pc_bits = Bits(int=program_counter*2, length=16).bin
-    ls_imm = Bits(bin=Imm11) << 1
+    ls_imm = Bits(bin=Imm11) 
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
-    return int(Bits(bin=cat_bits).int / 2 / WORD_SIZE)
+    sys.exit(0) 
+    return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
 
 def put_register(data_fields):
@@ -571,7 +569,6 @@ def put_register(data_fields):
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
     int_value = get_register_stats(Rs)
-    print(int_value)  
     return REGISTER_FILE[Rs]
 
 
@@ -595,7 +592,6 @@ def xsim(config_file, input_file, output_file):
     instruction_count = 0
 
     while True:
-        print(program_counter)
         current_instruction = instruction_memory[program_counter]
         op_code = current_instruction[0:5]
         data_fields = current_instruction[5:16]
@@ -736,6 +732,8 @@ def xsim(config_file, input_file, output_file):
 
     with open(output_file, 'w') as ofp:
         json.dump(STATISTICS_DICT, ofp)
+
+    pprint(STATISTICS_DICT)
 
 if __name__ == '__main__':
 

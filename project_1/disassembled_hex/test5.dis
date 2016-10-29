@@ -1,0 +1,29 @@
+LIZ r6, 232
+LUI r6, 3
+LIS r1, 3
+LIS r0, 14
+JALR r7, r0, r0
+PUT r2
+HALT
+LIS r0, -4
+ADD r6, r6, r0
+SW r0, r6, r4
+LIS r0, 2
+ADD r0, r6, r0
+SW r0, r0, r7
+LIS r2, 1
+LIS r0, 0
+ADD r4, r1, r0
+BZ r1, 22
+LIS r0, -1
+ADD r1, r1, r0
+LIS r0, 14
+JALR r7, r0, r0
+MUL r2, r4, r2
+LW r4, r6, r0
+LIS r0, 2
+ADD r0, r6, r0
+LW r7, r0, r0
+LIS r0, 4
+ADD r6, r6, r0
+JR r0, r7, r0

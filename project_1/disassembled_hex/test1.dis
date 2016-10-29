@@ -1,0 +1,7 @@
+LIZ r0, 10
+PUT r0
+LIS r1, -1
+PUT r1
+LUI r1, 0
+PUT r1
+HALT
