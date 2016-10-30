@@ -338,7 +338,7 @@ def load_word(data_fields):
     else:
         REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
 
-    update_register_statistics(Rd, result)
+    update_register_statistics(Rd, result * 2)  
 
     return REGISTER_FILE[Rd]
 
@@ -354,7 +354,7 @@ def store_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)
+    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)  
 
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
@@ -570,7 +570,7 @@ def put_register(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    int_value = get_register_stats(Rs)
+    int_value = get_register_stats(Rs) 
     return REGISTER_FILE[Rs]
 
 
