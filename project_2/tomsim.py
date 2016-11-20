@@ -9,9 +9,32 @@ Date:    19 November 2016
 import sys
 import json
 
+from pprint import pprint
+
 # DEFINES
 BUSY = 1
 FREE = 0
+
+# FUNCTIONAL UNIT ARRAYS
+INTEGER = []
+DIVIDER = []
+MULTIPLIER = []
+LOAD = []
+STORE = []
+
+# RESERVATION STATION ARRAYS
+INT_RS = []
+DIV_RS = []
+MULT_RS = []
+LD_RS = []
+ST_RS = []
+
+# RESVERATION STATION MAX LENGTHS
+INT_RS_MAX = 0
+DIV_RS_MAX = 0
+MULT_RS_MAX = 0
+LD_RS_MAX = 0
+ST_RS_MAX = 0
 
 
 class ReservationEntry:
@@ -86,11 +109,7 @@ class ReservationEntry:
 
         Returns: Boolean
         """
-
-        if (self.source_1 is not None and self.source_2 is not None):
-            return True
-        else:
-            return False
+        return bool(self.source_1 is not None and self.source_2 is not None)
 
 
 class FunctionalUnit:
@@ -106,6 +125,21 @@ class FunctionalUnit:
         self.func_id = func_id
         self.end_cycle = None
         self.destination = None
+
+    def __str__(self):
+        return """
+            Id:                {}
+            Instruction Count: {}
+            Latency:           {}
+            Status:            {}
+            End Cycle:         {}
+            Destination        {}
+            """.format(self.func_id,
+                       self.instruction_count,
+                       self.latency,
+                       self.status,
+                       self.end_cycle,
+                       self.destination)
 
     def get_statistics(self):
         """Gets the statistics for the functional unit
@@ -165,6 +199,93 @@ class FunctionalUnit:
         self.status = FREE
 
 
+def parse_config(config_file):
+    """Parses the config JSON file into a dictionary
+       to initialize the simulation
+
+       Keyword arguments:
+       config_file -- the path of configuration JSON file
+
+       Returns: None
+    """
+    with open(config_file) as configuration:
+        config_values = json.load(configuration)
+
+    for functional_unit, config_list in config_values.items():
+
+        unit_config = config_list[0]
+
+        if functional_unit == 'integer':
+            INT_RS_MAX = unit_config['resnumber']
+            latency = unit_config['latency']
+
+            for i in range(unit_config['number']):
+                INTEGER.append(FunctionalUnit(i, latency))
+
+        elif functional_unit == 'divider':
+            DIV_RS_MAX = unit_config['resnumber']
+            latency = unit_config['latency']
+
+            for i in range(unit_config['number']):
+                DIVIDER.append(FunctionalUnit(i, latency))
+
+        elif functional_unit == 'multiplier':
+            MULT_RS_MAX = unit_config['resnumber']
+            latency = unit_config['latency']
+
+            for i in range(unit_config['number']):
+                MULTIPLIER.append(FunctionalUnit(i, latency))
+
+        elif functional_unit == 'load':
+            LD_RS_MAX = unit_config['resnumber']
+            latency = unit_config['latency']
+
+            for i in range(unit_config['number']):
+                LOAD.append(FunctionalUnit(i, latency))
+
+        elif functional_unit == 'store':
+            ST_RS_MAX = unit_config['resnumber']
+            latency = unit_config['latency']
+
+            for i in range(unit_config['number']):
+                STORE.append(FunctionalUnit(i, latency))
+
+        else:
+            print('INVALID UNIT')
+
+
+def get_unit_statistics():
+    """Displays the statistics for all functional
+    units
+
+    Keyword arguments:
+    None
+
+    Return: None
+    """
+
+    print('--INTEGER STATS--')
+    for functional_unit in INTEGER:
+        print(functional_unit)
+
+
+    print('--DIVIDER STATS--')
+    for functional_unit in DIVIDER:
+        print(functional_unit)
+    
+    print('--MULTIPLIER STATS--')
+    for functional_unit in MULTIPLIER:
+        print(functional_unit)
+
+    print('--LOAD STATS--')
+    for functional_unit in LOAD:
+        print(functional_unit)
+
+    print('--STORE STATS--')
+    for functional_unit in STORE:
+        print(functional_unit)
+
+
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
        based on the information in the configuration
@@ -181,6 +302,8 @@ def tomsim(trace_file, config_file, output_file):
     print(config_file)
     print(output_file)
 
+    parse_config(config_file)
+    get_unit_statistics()
 
 if __name__ == '__main__':
 
