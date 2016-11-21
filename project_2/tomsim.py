@@ -45,6 +45,9 @@ RES_STATUS = {}
 # EVENT QUEUE
 EVENT_QUEUE = []
 
+# INSTRUCTION MEMORY
+
+INSTRUCTIONS = []
 
 # Need to store latencies some where
 class PipeEvent:
@@ -286,6 +289,19 @@ class FunctionalUnit:
         """
         self.status = FREE
 
+def parse_trace(trace_file):
+    """Parses the trace TEXT file into an array 
+    for processing during the simulation
+        
+    Keyword arguments:
+    trace_file -- the trace on instructions to simulate     
+
+    Returns: None
+    """
+    with open(trace_file) as instruction_trace:
+        for line in instruction_trace:
+            line = line.strip()
+            INSTRUCTIONS.append(line)
 
 def parse_config(config_file):
     """Parses the config JSON file into a dictionary
@@ -391,6 +407,11 @@ def tomsim(trace_file, config_file, output_file):
 
     parse_config(config_file)
     get_unit_statistics()
+
+    parse_trace(trace_file)
+    pprint(INSTRUCTIONS)
+
+
 
 if __name__ == '__main__':
 
