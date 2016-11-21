@@ -46,11 +46,27 @@ RES_STATUS = {}
 # EVENT QUEUE
 EVENT_QUEUE = []
 
-# INSTRUCTION MEMORY
+# OPCODE MAPPING
 
-INSTRUCTIONS = []
+OPCODE_MAP = {'00000': 'add',
+              '00001': 'sub',
+              '00010': 'and',
+              '00011': 'nor',
+              '00100': 'div',
+              '00101': 'mul',
+              '00110': 'mod',
+              '00111': 'exp',
+              '01000': 'lw',
+              '01001': 'sw',
+              '10001': 'lis',
+              '10000': 'liz',
+              '10010': 'lui',
+              '01101': 'halt',
+              '01110': 'put'}
 
 # Need to store latencies some where
+
+
 class PipeEvent:
     """Event entry for tomsim to model ISSUE,
     READ_OPERAND, EXECUTE, and WRITE_REGISTER
@@ -290,44 +306,69 @@ class FunctionalUnit:
         """
         self.status = FREE
 
-def parse_trace(trace_file):
-    """Parses the trace TEXT file into an array 
-    for processing during the simulation
-        
-    Keyword arguments:
-    trace_file -- the trace on instructions to simulate     
 
-    Returns: List 
+def parse_trace(trace_file):
+    """Parses the trace TEXT file into an array
+    for processing during the simulation
+
+    Keyword arguments:
+    trace_file -- the trace on instructions to simulate
+
+    Returns: List
     """
-    
+
     instructions = []
 
     with open(trace_file) as instruction_trace:
         for line in instruction_trace:
-            if line[0] is not '#': 
+            if line[0] is not '#':
                 line = line.strip()
                 binary_value = bin(int(line, 16))[2:].zfill(16)
                 instructions.append(binary_value)
 
     return instructions
 
+
 def get_instruction(instructions, instruction_count):
     """Gets the next instruction and produces
-    the necessary issue event
+    the type and source operands
 
     Keyword arguments:
     instructions -- the array of instructions
-    instructions_count -- the index of the next instruction 
+    instructions_count -- the index of the next instruction
 
 
-    Return: PipeEvent  
+    Return: Tuple
     """
 
-    instruction_hex = instructions[instruction_count] 
-                   
+    i_type = ['liz', 'lis', 'lui']
 
-       
-        
+    next_instruction = instructions[instruction_count]
+    opcode = next_instruction[0:5]
+
+    instruction_type = OPCODE_MAP[opcode]
+
+    if instruction_type in i_type:
+        dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
+        # USE 'IMM8' to recoginize that the source operand
+        # is immediately available
+        source_1 = 'IMM8'
+        source_2 = None
+    elif instruction_type is 'put':
+        dest = None
+        source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_2 = None
+    elif instruction_type is 'halt':
+        dest = None
+        source_1 = None
+        source_2 = None
+    else:
+        dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
+        source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_2 = ''.join(['r', str(int(next_instruction[11:14], 2))])
+
+    return (instruction_type, dest, source_1, source_2)
+
 
 def parse_config(config_file):
     """Parses the config JSON file into a dictionary
@@ -427,16 +468,25 @@ def tomsim(trace_file, config_file, output_file):
 
        Return: None
     """
-    print(trace_file)
-    print(config_file)
-    print(output_file)
-
+    halt_sig = False
+    instruction_count = 0
+    
     parse_config(config_file)
-    get_unit_statistics()
 
     instructions = parse_trace(trace_file)
-    pprint(instructions)
+    print(instructions)
 
+    while not halt_sig:
+        (name, dest, s1, s2) = get_instruction(instructions,instruction_count)
+       
+        pprint((name, dest, s1, s2)) 
+        
+        if name is 'halt':
+            print('HALT RECEIVED') 
+            halt_sig = True     
+        
+        instruction_count += 1   
+         
 
 
 
