@@ -36,6 +36,94 @@ MULT_RS_MAX = 0
 LD_RS_MAX = 0
 ST_RS_MAX = 0
 
+# RESGISTER RENAMING
+RES_RENAME = {}
+
+# RESERVATION STATION STATUS
+RES_STATUS = {}
+
+# EVENT QUEUE
+EVENT_QUEUE = []
+
+
+# Need to store latencies some where
+class PipeEvent:
+    """Event entry for tomsim to model ISSUE,
+    READ_OPERAND, EXECUTE, and WRITE_REGISTER
+    """
+
+    def __init__(self, event_type, current_cycle, latency):
+        self.event = event_type
+        self.dest = None
+        self.source_1 = None
+        self.source_2 = None
+        self.start = current_cycle
+        self.end = current_cycle + latency
+
+    def set_sources(self, s1, s2):
+        """Sets the sources for the event
+
+        Keyword arguments:
+        s1 -- source operand 1 or FU producing
+        s2 -- source operand 2 or FU producing
+
+        Returns: None
+        """
+        self.source_1 = s1
+        self.source_2 = s2
+
+    def set_destination(self, dest):
+        """Sets the destination for the event
+
+        Keyword arguments:
+        dest -- destination FU producing
+
+        Returns: None
+        """
+        self.dest = None
+
+    def update_event(self, new_event):
+        """Updates the event as it moves through
+        the event queue
+
+        Keyword arguments:
+        new_event -- the new event for this object
+
+        Returns: None
+        """
+        self.event = new_event
+
+    def get_event(self):
+        """Returns the event type
+
+        Keyword arguments:
+        None
+
+        Return: String
+        """
+        return self.event
+
+    def get_sources(self):
+        """Returns the sources for the event
+
+        Keyword arguments:
+        None
+
+        Return: Tuple of sources
+        """
+        return (self.source_1, self.source_2)
+
+    def get_age(self, current_cycle):
+        """Computes the age of the event based
+        on its start cycle and the current cycle
+
+        Keyword arguments:
+        current_cycle -- the current cycle of execution
+
+        Return: Int
+        """
+        return current_cycle - self.start
+
 
 class ReservationEntry:
     """ReservationEntry Class to model the entries into
@@ -268,11 +356,10 @@ def get_unit_statistics():
     for functional_unit in INTEGER:
         print(functional_unit)
 
-
     print('--DIVIDER STATS--')
     for functional_unit in DIVIDER:
         print(functional_unit)
-    
+
     print('--MULTIPLIER STATS--')
     for functional_unit in MULTIPLIER:
         print(functional_unit)
