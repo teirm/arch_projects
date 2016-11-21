@@ -10,6 +10,7 @@ import sys
 import json
 
 from pprint import pprint
+from bitstring import Bits
 
 # DEFINES
 BUSY = 1
@@ -296,12 +297,37 @@ def parse_trace(trace_file):
     Keyword arguments:
     trace_file -- the trace on instructions to simulate     
 
-    Returns: None
+    Returns: List 
     """
+    
+    instructions = []
+
     with open(trace_file) as instruction_trace:
         for line in instruction_trace:
-            line = line.strip()
-            INSTRUCTIONS.append(line)
+            if line[0] is not '#': 
+                line = line.strip()
+                binary_value = bin(int(line, 16))[2:].zfill(16)
+                instructions.append(binary_value)
+
+    return instructions
+
+def get_instruction(instructions, instruction_count):
+    """Gets the next instruction and produces
+    the necessary issue event
+
+    Keyword arguments:
+    instructions -- the array of instructions
+    instructions_count -- the index of the next instruction 
+
+
+    Return: PipeEvent  
+    """
+
+    instruction_hex = instructions[instruction_count] 
+                   
+
+       
+        
 
 def parse_config(config_file):
     """Parses the config JSON file into a dictionary
@@ -408,8 +434,9 @@ def tomsim(trace_file, config_file, output_file):
     parse_config(config_file)
     get_unit_statistics()
 
-    parse_trace(trace_file)
-    pprint(INSTRUCTIONS)
+    instructions = parse_trace(trace_file)
+    pprint(instructions)
+
 
 
 
