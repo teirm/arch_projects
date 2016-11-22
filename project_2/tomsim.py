@@ -10,7 +10,6 @@ import sys
 import json
 
 from pprint import pprint
-from bitstring import Bits
 
 # DEFINES
 BUSY = 1
@@ -79,6 +78,8 @@ class PipeEvent:
         self.source_2 = None
         self.start = current_cycle
         self.end = current_cycle + latency
+        self.location = None 
+        self.position = None
 
     def set_sources(self, s1, s2):
         """Sets the sources for the event
@@ -91,6 +92,19 @@ class PipeEvent:
         """
         self.source_1 = s1
         self.source_2 = s2
+
+    def set_resv_info(self, res_name, res_pos):
+        """Sets the reservation station for the event
+        and its location in the reservation station
+
+        Keyword arguments:
+        res_name -- name of the reservation station (INT_RS, DIV_RS...)
+        res_pos -- position in the reservation station
+
+        Returns: None
+        """
+        self.location = res_name
+        self.position = res_pos
 
     def set_destination(self, dest):
         """Sets the destination for the event
@@ -119,7 +133,7 @@ class PipeEvent:
         Keyword arguments:
         None
 
-        Return: String
+        Returns: String
         """
         return self.event
 
@@ -129,7 +143,7 @@ class PipeEvent:
         Keyword arguments:
         None
 
-        Return: Tuple of sources
+        Returns: Tuple of sources
         """
         return (self.source_1, self.source_2)
 
@@ -140,9 +154,20 @@ class PipeEvent:
         Keyword arguments:
         current_cycle -- the current cycle of execution
 
-        Return: Int
+        Returns: Int
         """
         return current_cycle - self.start
+
+    def get_resv_info(self):
+        """Returns the reservation station information
+        to the caller for this PipeEvent
+
+        Keyword arguments:
+        None
+
+        Returns: Tuple of (resv_name, resv_pos)
+        """
+        return (self.location, self.position)
 
 
 class ReservationEntry:
@@ -150,7 +175,6 @@ class ReservationEntry:
     the different reserveration stations for each set of
     functional units.
     """
-
     def __init__(self, op_type, current_cycle):
         self.operation = op_type
         self.entry_cycle = current_cycle
@@ -379,6 +403,13 @@ def parse_config(config_file):
 
        Returns: None
     """
+
+    global INT_RS_MAX
+    global DIV_RS_MAX
+    global MULT_RS_MAX
+    global LD_RS_MAX
+    global ST_RS_MAX
+
     with open(config_file) as configuration:
         config_values = json.load(configuration)
 
@@ -456,6 +487,73 @@ def get_unit_statistics():
         print(functional_unit)
 
 
+def get_resv_station(op_name):
+    """Checks if a reservation station is available
+    and if it is fills in reservation station with the
+    given operation
+
+    Keyword arguments:
+    op_name -- the name of the operation
+
+    Returns: Tuple of RS type and Int of position in RS if successful otherwise None, -1
+    """
+
+    int_operations = [
+        'add',
+        'sub',
+        'nor',
+        'and',
+        'lis',
+        'liz',
+        'lui',
+        'put',
+        'halt']
+    div_operations = ['div', 'exp', 'mod']
+
+    if op_name in int_operations:
+        if len(INT_RS) < INT_RS_MAX:
+            print('INT RS AVAILABLE FOR {}'.format(op_name))
+            ret_val = ('INT', len(INT_RS))
+            INT_RS.append(BUSY)
+        else:
+            print('INT RS NOT AVAILABLE FOR {}'.format(op_name))
+            ret_val = (None, -1)
+    elif op_name in div_operations:
+        if len(DIV_RS) < DIV_RS_MAX:
+            print('DIV RS AVAILABLE FOR {}'.format(op_name))
+            ret_val = ('DIV', len(DIV_RS))
+            DIV_RS.append(BUSY)
+        else:
+            print('DIV RS NOT AVAILABLE FOR {}'.format(op_name))
+            ret_val = (None, -1)
+    elif op_name is 'mul':
+        if len(MULT_RS) < MULT_RS_MAX:
+            print('MULT RS AVAILABLE FOR {}'.format(op_name))
+            ret_val = ('MULT', len(MULTIPLIER))
+            MULT_RS.append(BUSY)
+        else:
+            print('MULT RS NOT AVAILABLE FOR {}'.format(op_name))
+            ret_val = (None, -1)
+    elif op_name is 'lw':
+        if len(LD_RS) < LD_RS_MAX:
+            print('LD RS AVAILABLE FOR {}'.format(op_name))
+            LD_RS.append(BUSY) 
+            ret_val = ('LD', len(LOAD))
+        else:
+            print('LD RS NOT AVAILABLE FOR {}'.format(op_name))
+            ret_val = (None, -1)
+    else:
+        if len(ST_RS) < ST_RS_MAX:
+            print('ST RS AVAILABLE FOR {}'.format(op_name))
+            ST_RS.append(BUSY) 
+            ret_val = ('ST', len(STORE))
+        else:
+            print('ST RS NOT AVAILABLE FOR {}'.format(op_name))
+            ret_val = (None, -1)
+
+    return ret_val
+
+
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
        based on the information in the configuration
@@ -470,25 +568,33 @@ def tomsim(trace_file, config_file, output_file):
     """
     halt_sig = False
     instruction_count = 0
-    
+    clock_cycle = 0
+
     parse_config(config_file)
 
     instructions = parse_trace(trace_file)
     print(instructions)
 
     while not halt_sig:
-        (name, dest, s1, s2) = get_instruction(instructions,instruction_count)
-       
-        pprint((name, dest, s1, s2)) 
+        (name, dest, s1, s2) = get_instruction(instructions, instruction_count)
+        (res_name, res_pos) = get_resv_station(name)
+
+        if res_name is not None:
+            new_event = PipeEvent('READ_OPERAND', clock_cycle, 1)
+            new_event.set_destination(dest)
+            new_event.set_sources(s1, s2)
+                 
         
+        else:
+            print('Stalling the Pipe')
+
+
         if name is 'halt':
-            print('HALT RECEIVED') 
-            halt_sig = True     
-        
-        instruction_count += 1   
-         
+            print('HALT RECEIVED')
+            halt_sig = True
 
-
+        instruction_count += 1
+        clock_cycle = 0
 
 if __name__ == '__main__':
 
