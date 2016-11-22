@@ -71,15 +71,36 @@ class PipeEvent:
     READ_OPERAND, EXECUTE, and WRITE_REGISTER
     """
 
-    def __init__(self, event_type, current_cycle, latency):
+    def __init__(self, event_type, instr, current_cycle, latency):
         self.event = event_type
+        self.instruction = instr
+        self.start = current_cycle
+        self.end = current_cycle + latency
         self.dest = None
         self.source_1 = None
         self.source_2 = None
-        self.start = current_cycle
-        self.end = current_cycle + latency
-        self.location = None 
+        self.location = None
         self.position = None
+
+    def __str__(self):
+        return """Event:       {}
+           Instruction: {}
+           Destination: {}
+           Source 1:    {}
+           Source 2:    {}
+           Start:       {}
+           End:         {}
+           Location:    {}
+           Position:    {}
+           """.format(self.event,
+                      self.instruction, 
+                      self.dest,
+                      self.source_1,
+                      self.source_2,
+                      self.start,
+                      self.end,
+                      self.location,
+                      self.position)
 
     def set_sources(self, s1, s2):
         """Sets the sources for the event
@@ -175,6 +196,7 @@ class ReservationEntry:
     the different reserveration stations for each set of
     functional units.
     """
+
     def __init__(self, op_type, current_cycle):
         self.operation = op_type
         self.entry_cycle = current_cycle
@@ -537,7 +559,7 @@ def get_resv_station(op_name):
     elif op_name is 'lw':
         if len(LD_RS) < LD_RS_MAX:
             print('LD RS AVAILABLE FOR {}'.format(op_name))
-            LD_RS.append(BUSY) 
+            LD_RS.append(BUSY)
             ret_val = ('LD', len(LOAD))
         else:
             print('LD RS NOT AVAILABLE FOR {}'.format(op_name))
@@ -545,7 +567,7 @@ def get_resv_station(op_name):
     else:
         if len(ST_RS) < ST_RS_MAX:
             print('ST RS AVAILABLE FOR {}'.format(op_name))
-            ST_RS.append(BUSY) 
+            ST_RS.append(BUSY)
             ret_val = ('ST', len(STORE))
         else:
             print('ST RS NOT AVAILABLE FOR {}'.format(op_name))
@@ -573,28 +595,40 @@ def tomsim(trace_file, config_file, output_file):
     parse_config(config_file)
 
     instructions = parse_trace(trace_file)
-    print(instructions)
+#    print(instructions)
 
     while not halt_sig:
+       
+        # Only if pipeline is NOT STALLED  
         (name, dest, s1, s2) = get_instruction(instructions, instruction_count)
         (res_name, res_pos) = get_resv_station(name)
+        instruction_count += 1
+       
+        #NEED FUNCTION TO HANDLE WRITE_OPS
+        #NEED FUNCTION TO HANDLE EXECUTES 
+        #NEED FUNCTION TO HANDLE READ_OPS
 
         if res_name is not None:
-            new_event = PipeEvent('READ_OPERAND', clock_cycle, 1)
+            new_event = PipeEvent('READ_OPERAND', name, clock_cycle, 1)
             new_event.set_destination(dest)
             new_event.set_sources(s1, s2)
-                 
-        
+            new_event.set_resv_info(res_name, res_pos)
+
+            EVENT_QUEUE.append(new_event)
         else:
             print('Stalling the Pipe')
-
 
         if name is 'halt':
             print('HALT RECEIVED')
             halt_sig = True
 
-        instruction_count += 1
-        clock_cycle = 0
+        clock_cycle += 1
+
+    for event in EVENT_QUEUE:
+        print("-------------------------------")
+        print(event)
+        print("-------------------------------")
+
 
 if __name__ == '__main__':
 
