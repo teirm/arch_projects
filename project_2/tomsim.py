@@ -135,18 +135,52 @@ class PipeEvent:
 
         Returns: None
         """
-        self.dest = None
-
+        self.dest = dest
+    
+    def get_destination(self):
+        """Gets the FU for the event
+        
+        Keyword arguments:
+        None
+        
+        Returns: None
+        """
+        return self.dest 
+    
+        
     def update_event(self, new_event):
         """Updates the event as it moves through
         the event queue
 
         Keyword arguments:
         new_event -- the new event for this object
+        new_start -- new start time
+        new_end -- new end time
 
         Returns: None
         """
         self.event = new_event
+
+    def update_start(self, new_start):
+        """Updates the start time of an event
+
+        Keyword arguments:
+        new_start -- new start time
+
+        Returns: None
+        """
+        self.start = new_start
+
+    def update_end(self, new_end):
+        """Updates the end time of an event
+
+        Keyword arguments:
+        new_end -- new end time
+
+        Returns: None
+        """ 
+        self.end == new_end
+
 
     def get_event(self):
         """Returns the event type
@@ -189,6 +223,17 @@ class PipeEvent:
         Returns: Tuple of (resv_name, resv_pos)
         """
         return (self.location, self.position)
+
+    def get_end(self):
+        """Returns the time at which the event
+        is supposed to end.
+
+        Keyword arguments:
+        None
+
+        Returns: Int
+        """
+        return self.end
 
 
 class ReservationEntry:
@@ -575,6 +620,83 @@ def get_resv_station(op_name):
 
     return ret_val
 
+# EVENT HANDLERS
+
+def write_op_handler(current_cycle):
+    """Handles WRITE_OPERAND events in the event queue.
+    If an event is found that can be processed on the
+    current clock cycle it will set the RS_STATUS 
+    renamed register to True (1) and make the FU free
+    (NOT BUSY).  The event is then removed from the
+    EVENT QUEUE.
+
+    Keyword arguments:
+    current_cycle -- the current cycle the simulation is
+                     processing
+
+    Returns: Int indicating the number of events found
+             and processed.
+    """ 
+
+    events_processed = 0
+    queue_position = 0
+
+    for event in EVENT_QUEUE:
+        if event.get_end() == current_cycle and event.get_event() == 'WO':            
+            event_name = event.get_event() 
+            fu_destination = event.get_dest() 
+            (location, position) = event.get_resv_info()          
+            #Update REG_RENAME
+            #free FU for event_name and RS
+            EVENT_QUEUE.remove(queue_position)      
+            events_processed += 1
+             
+        queue_position += 1              
+    
+    return events_processed
+
+
+def exec_handler(current_cycle):
+    """Handles EXECUTE events in the event queue.
+    If an event is found that can be processed on
+    the current clock cycle it will upgrade the
+    event to the WRITE_OPERAND EVENT and mark
+    update the start and end times.
+
+    Keyword arguments:
+    current_cycle -- the current cycle the simulation
+                     is processing
+
+    Returns: Int indiciatng the number of events found
+             and processed.
+    """
+    
+    events_processed = 0
+    
+    for event in EVENT_QUEUE:
+        if event.get_end() == current_cycle and event.get_event() == 'EXEC':
+            event.update_event('WO', current_cycle, current_cycle + 1)
+            event.update_start(current_cycle)
+            event_update_end(current_cycle + 1)
+    
+            events_processed += 1
+
+    return events_processed
+
+
+def read_op_handler(current_cycle):
+    """Handles READ OPERAND events in the event queue.
+       If a read operand event is found, the necessary
+       sources are checked for availability.  If both
+       are already available, a functional unit is 
+       checked for availablity and assigned if possible.
+       If sources are unavailable or FU not available,
+       event is updated as RO with only the end cycle
+       updated. 
+    """
+    
+        
+                        
 
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
