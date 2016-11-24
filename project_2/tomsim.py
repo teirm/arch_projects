@@ -10,6 +10,7 @@ import sys
 import json
 
 from pprint import pprint
+from PipeEvent import PipeEvent
 
 # DEFINES
 BUSY = 1
@@ -66,210 +67,6 @@ OPCODE_MAP = {'00000': 'add',
 # Need to store latencies some where
 
 
-class PipeEvent:
-    """Event entry for tomsim to model ISSUE,
-    READ_OPERAND, EXECUTE, and WRITE_REGISTER
-    """
-
-    def __init__(self, event_type, instr, current_cycle, latency):
-        self.event = event_type
-        self.instruction = instr
-        self.start = current_cycle
-        self.end = current_cycle + latency
-        self.dest = None
-        self.source_1 = None
-        self.source_2 = None
-        self.location = None
-        self.position = None
-        self.func_unit = None
-        self.func_id = None 
-         
-
-    def __str__(self):
-        return """Event:       {}
-           Instruction: {}
-           Destination: {}
-           Source 1:    {}
-           Source 2:    {}
-           Start:       {}
-           End:         {}
-           Location:    {}
-           Position:    {}
-           """.format(self.event,
-                      self.instruction,
-                      self.dest,
-                      self.source_1,
-                      self.source_2,
-                      self.start,
-                      self.end,
-                      self.location,
-                      self.position)
-
-    def set_fu_info(self, fu_name, fu_id):
-        """Sets the functional unit information
-
-        Keyword arguments:
-        fu_name -- name of the functional unit
-
-        fu_id -- id of the functional unit
-        
-        Returns: None
-        """
-        self.func_unit = fu_name
-        self.func_id = fu_id 
-
-    
-    def get_fu_info(self):
-        """Gets the functional unit information
-
-        Keyword arguments:
-        None
-
-        Returns: Tuple
-        """
-        return (self.func_unit, self.func_id)
-
-
-    def get_instruction(self):
-        """Returns the instruction type of the event
-
-        Keyword arguments:
-        None
-
-        Returns: String
-        """
-        return self.instruction
-
-    def set_sources(self, s1, s2):
-        """Sets the sources for the event
-
-        Keyword arguments:
-        s1 -- source operand 1 or FU producing
-        s2 -- source operand 2 or FU producing
-
-        Returns: None
-        """
-        self.source_1 = s1
-        self.source_2 = s2
-
-    def set_resv_info(self, res_name, res_pos):
-        """Sets the reservation station for the event
-        and its location in the reservation station
-
-        Keyword arguments:
-        res_name -- name of the reservation station (INT_RS, DIV_RS...)
-        res_pos -- position in the reservation station
-
-        Returns: None
-        """
-        self.location = res_name
-        self.position = res_pos
-
-    def set_destination(self, dest):
-        """Sets the destination for the event
-
-        Keyword arguments:
-        dest -- destination FU producing
-
-        Returns: None
-        """
-        self.dest = dest
-
-    def get_destination(self):
-        """Gets the FU for the event
-
-        Keyword arguments:
-        None
-
-        Returns: None
-        """
-        return self.dest
-
-    def update_event(self, new_event):
-        """Updates the event as it moves through
-        the event queue
-
-        Keyword arguments:
-        new_event -- the new event for this object
-        new_start -- new start time
-        new_end -- new end time
-
-        Returns: None
-        """
-        self.event = new_event
-
-    def update_start(self, new_start):
-        """Updates the start time of an event
-
-        Keyword arguments:
-        new_start -- new start time
-
-        Returns: None
-        """
-        self.start = new_start
-
-    def update_end(self, new_end):
-        """Updates the end time of an event
-
-        Keyword arguments:
-        new_end -- new end time
-
-        Returns: None
-        """
-        self.end == new_end
-
-    def get_event(self):
-        """Returns the event type
-
-        Keyword arguments:
-        None
-
-        Returns: String
-        """
-        return self.event
-
-    def get_sources(self):
-        """Returns the sources for the event
-
-        Keyword arguments:
-        None
-
-        Returns: Tuple of sources
-        """
-        return (self.source_1, self.source_2)
-
-    def get_age(self, current_cycle):
-        """Computes the age of the event based
-        on its start cycle and the current cycle
-
-        Keyword arguments:
-        current_cycle -- the current cycle of execution
-
-        Returns: Int
-        """
-        return current_cycle - self.start
-
-    def get_resv_info(self):
-        """Returns the reservation station information
-        to the caller for this PipeEvent
-
-        Keyword arguments:
-        None
-
-        Returns: Tuple of (resv_name, resv_pos)
-        """
-        return (self.location, self.position)
-
-    def get_end(self):
-        """Returns the time at which the event
-        is supposed to end.
-
-        Keyword arguments:
-        None
-
-        Returns: Int
-        """
-        return self.end
 
 
 class ReservationEntry:
@@ -407,7 +204,6 @@ class FunctionalUnit:
         Return: Int FREE (0) or BUSY (1)
         """
         return self.status
-
 
     def get_statistics(self):
         """Gets the statistics for the functional unit
@@ -691,6 +487,7 @@ def get_resv_station(op_name):
 
 # EVENT HANDLERS
 
+
 def rename_register(dest_reg, resv_name):
     """Renames the destination register to
     the given reservation station name.
@@ -702,8 +499,8 @@ def rename_register(dest_reg, resv_name):
 
     Returns: None
     """
-    RES_RENAME[dest_reg] = resv_name  
-    
+    RES_RENAME[dest_reg] = resv_name
+
 
 def update_reg_status(resv_reg, status):
     """Updates the renamed register status
@@ -712,10 +509,10 @@ def update_reg_status(resv_reg, status):
     Keyword arguments:
     resv_reg -- key for dictionary indicating renamed
                 register
-    
+
     status -- the status to give the resv_reg
 
-    Returns: None 
+    Returns: None
     """
     RES_STATUS[resv_reg] = status
 
@@ -898,6 +695,20 @@ def read_op_handler(current_cycle):
                 else:
                     event.update_end(current_cycle + 1)
 
+def print_event_queue():
+    """Prints out all elements in the EVENT_QUEUE
+
+    Keyword arguments:
+    None
+
+    Returns: None
+    """
+    
+    for event in EVENT_QUEUE:
+        print("-------------------------------")
+        print(event)
+        print("-------------------------------")
+
 
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
@@ -921,7 +732,6 @@ def tomsim(trace_file, config_file, output_file):
 #    print(instructions)
 
     while not halt_sig:
-
         # Only if pipeline is NOT STALLED
         (name, dest, s1, s2) = get_instruction(instructions, instruction_count)
         (res_name, res_pos) = get_resv_station(name)
@@ -936,8 +746,9 @@ def tomsim(trace_file, config_file, output_file):
             new_event.set_destination(dest)
             new_event.set_sources(s1, s2)
             new_event.set_resv_info(res_name, res_pos)
-
-            EVENT_QUEUE.append(new_event)
+   
+            EVENT_QUEUE.append(new_event) 
+        
         else:
             print('Stalling the Pipe')
 
@@ -945,12 +756,9 @@ def tomsim(trace_file, config_file, output_file):
             print('HALT RECEIVED')
             halt_sig = True
 
+        print_event_queue() 
         clock_cycle += 1
 
-    for event in EVENT_QUEUE:
-        print("-------------------------------")
-        print(event)
-        print("-------------------------------")
 
 
 if __name__ == '__main__':
