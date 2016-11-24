@@ -11,6 +11,8 @@ import json
 
 from pprint import pprint
 from PipeEvent import PipeEvent
+from FunctionalUnit import FunctionalUnit
+
 
 # DEFINES
 BUSY = 1
@@ -37,8 +39,8 @@ MULT_RS_MAX = 0
 LD_RS_MAX = 0
 ST_RS_MAX = 0
 
-# RESGISTER RENAMING
-RES_RENAME = {}
+# REGISTER RENAMING
+REG_RENAME = {}
 
 # RESERVATION STATION STATUS
 RES_STATUS = {}
@@ -65,202 +67,6 @@ OPCODE_MAP = {'00000': 'add',
               '01110': 'put'}
 
 # Need to store latencies some where
-
-
-
-
-class ReservationEntry:
-    """ReservationEntry Class to model the entries into
-    the different reserveration stations for each set of
-    functional units.
-    """
-
-    def __init__(self, op_type, current_cycle):
-        self.operation = op_type
-        self.entry_cycle = current_cycle
-        self.source_1 = None
-        self.source_2 = None
-        self.res_1 = None
-        self.res_2 = None
-
-    def set_source_1(self, s1):
-        """Sets the source 1 when it is available
-
-        Keyword arguments:
-        s1 -- the location of s1
-
-        Returns: None
-        """
-        self.source_1 = s1
-
-    def set_source_2(self, s1):
-        """Sets the source 2 when it is available
-
-        Keyword arguments:
-        s2 -- the location of s2
-
-        Returns: None
-        """
-        self.source_1 = s1
-
-    def set_res_1(self, r1):
-        """Sets the resveration station 1 producing source 1
-
-        Keyword arguments:
-        r1 -- the reservation station for s1
-
-        Returns: None
-        """
-        self.res_1 = r1
-
-    def set_res_2(self, r2):
-        """Sets the reservation station 2 producing source 2
-
-        Keyword arguments:
-        r2 -- the reservation station for s2
-
-        Returns: None
-        """
-        self.res_2 = r2
-
-    def get_entry_time(self):
-        """Gets the time the reservation station was added
-
-        Keyword arguments:
-        None
-
-        Returns: Int
-        """
-        return self.entry_cycle
-
-    def check_readiness(self):
-        """Checks if a reservation entry is ready for execution
-
-        Keyword arguments:
-        None
-
-        Returns: Boolean
-        """
-        return bool(self.source_1 is not None and self.source_2 is not None)
-
-
-class FunctionalUnit:
-    """FunctionalUnit Class to encompass methods needed for
-       Integer, Divide, Multipler, Load, Store Functional
-       Units in tomsim
-    """
-
-    def __init__(self, func_id, lat):
-        self.instruction_count = 0
-        self.latency = lat
-        self.status = FREE
-        self.func_id = func_id
-        self.end_cycle = None
-        self.destination = None
-
-    def __str__(self):
-        return """
-            Id:                {}
-            Instruction Count: {}
-            Latency:           {}
-            Status:            {}
-            End Cycle:         {}
-            Destination        {}
-            """.format(self.func_id,
-                       self.instruction_count,
-                       self.latency,
-                       self.status,
-                       self.end_cycle,
-                       self.destination)
-
-    def get_latency(self):
-        """Gets the latency of the functional unit
-
-        Keyword arguments:
-        None
-
-        Return: Int
-        """
-        return self.latency
-
-    def set_status(self, status):
-        """Sets the status of a functional unit
-
-        Keyword arguments:
-        status -- the status to set a functional unit to
-                  either BUSY or FREE
-
-        Returns
-        None
-        """
-        self.status = status
-
-    def get_status(self):
-        """Gets the status of a functional unit
-
-        Keyword arguments:
-        None
-
-        Return: Int FREE (0) or BUSY (1)
-        """
-        return self.status
-
-    def get_statistics(self):
-        """Gets the statistics for the functional unit
-
-        Keyword arguments:
-        None
-
-        Returns: Tuple of function id and instruction count
-        """
-
-        return (self.func_id, self.instruction_count)
-
-    def get_end(self):
-        """Gets the end cycle
-
-        Keyword arguments:
-        None
-
-        Returns: Int of the end cycle
-        """
-
-        return self.end_cycle
-
-    def get_destination(self):
-        """Gets the location to which the functional unit will
-        write
-
-        Keyword arguments:
-        None
-
-        Returns: String of renamed destination
-        """
-
-        return self.destination
-
-    def start_op(self, current_cycle):
-        """Starts execution of the functional unit.  The unit is now busy
-
-        Keyword arguments:
-        current_cycle -- the cycle on which execution begins
-
-        Returns: None
-        """
-
-        self.status = BUSY
-        self.instruction_count += 1
-        self.end_cycle = self.latency + current_cycle
-
-    def end_op(self):
-        """Ends the execution of the functional unit.  The unit is now free
-
-        Keyword arguments:
-        None
-
-        Returns None
-        """
-        self.status = FREE
 
 
 def parse_trace(trace_file):
@@ -485,10 +291,8 @@ def get_resv_station(op_name):
 
     return ret_val
 
-# EVENT HANDLERS
 
-
-def rename_register(dest_reg, resv_name):
+def rename_register(dest_reg, resv_name, res_pos):
     """Renames the destination register to
     the given reservation station name.
 
@@ -499,7 +303,7 @@ def rename_register(dest_reg, resv_name):
 
     Returns: None
     """
-    RES_RENAME[dest_reg] = resv_name
+    REG_RENAME[dest_reg] = "".join([resv_name, str(res_pos)]) 
 
 
 def update_reg_status(resv_reg, status):
@@ -517,6 +321,7 @@ def update_reg_status(resv_reg, status):
     RES_STATUS[resv_reg] = status
 
 
+# EVENT HANDLERS
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
     If an event is found that can be processed on the
@@ -539,11 +344,11 @@ def write_op_handler(current_cycle):
     for event in EVENT_QUEUE:
         if event.get_end() == current_cycle and event.get_event() == 'WO':
             event_name = event.get_event()
-            fu_destination = event.get_dest()
+            fu_destination = event.get_destination()
             (location, position) = event.get_resv_info()
-            # Update REG_STATUS
+            update_reg_status(fu_destination, 1) 
             # free FU for event_name and RS
-            EVENT_QUEUE.remove(queue_position)
+            EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
             events_processed += 1
 
         queue_position += 1
@@ -570,7 +375,7 @@ def exec_handler(current_cycle):
 
     for event in EVENT_QUEUE:
         if event.get_end() == current_cycle and event.get_event() == 'EXEC':
-            event.update_event('WO', current_cycle, current_cycle + 1)
+            event.update_event('WO')
             event.update_start(current_cycle)
             event.update_end(current_cycle + 1)
 
@@ -590,8 +395,15 @@ def check_sources(s1, s2):
 
     Return: Tuple with (s1 status, s2 status)
     """
-    s1_status = RES_STATUS[s1]
-    s2_status = RES_STATUS[s2]
+    if s1 is 'IMM8' or s1 is None:
+        s1_status = 1
+    else: 
+        s1_status = RES_STATUS[s1]
+   
+    if s2 is None:
+        s2_status = 1
+    else: 
+        s2_status = RES_STATUS[s2]
 
     return (s1_status, s2_status)
 
@@ -679,7 +491,6 @@ def read_op_handler(current_cycle):
     Returns: Int indiciatng the number of events found
              and processed.
     """
-
     for event in EVENT_QUEUE:
         if event.get_event() == 'RO':
             # NEED TO FIND OLDEST FOR A GIVEN FU
@@ -695,19 +506,44 @@ def read_op_handler(current_cycle):
                 else:
                     event.update_end(current_cycle + 1)
 
-def print_event_queue():
+
+def print_reg_changes(clock_cycle):
+    """Prints out the register renaming map
+    and the register status map at the given
+    clock cycle
+
+    Keyword arguments
+    clock_cycle -- the current simulation clock cycle
+
+    Returns: None
+    """
+
+    print('CLOCK CYCLE: {}'.format(clock_cycle))
+    print('REG RENAME MAP')
+    pprint(REG_RENAME)
+
+    print('RES STATUS MAP')
+    pprint(RES_STATUS)
+
+
+
+def print_event_queue(clock_cycle):
     """Prints out all elements in the EVENT_QUEUE
 
     Keyword arguments:
-    None
+    clock_cycle -- the current simulation clock cycle
 
     Returns: None
     """
     
+    print('CURRENT CYCLE: {}'.format(clock_cycle))
+    print('EVENT QUEUE LENGTH: {}'.format(len(EVENT_QUEUE)))
+
     for event in EVENT_QUEUE:
-        print("-------------------------------")
+        print('-------------------------------')
         print(event)
-        print("-------------------------------")
+    
+    print('-------------------------------')
 
 
 def tomsim(trace_file, config_file, output_file):
@@ -731,35 +567,50 @@ def tomsim(trace_file, config_file, output_file):
     instructions = parse_trace(trace_file)
 #    print(instructions)
 
-    while not halt_sig:
-        # Only if pipeline is NOT STALLED
-        (name, dest, s1, s2) = get_instruction(instructions, instruction_count)
-        (res_name, res_pos) = get_resv_station(name)
-        instruction_count += 1
+    while True:
+        (res_name, res_pos) = (None, None) 
+        read_op_handler(clock_cycle) 
+        exec_handler(clock_cycle) 
+        write_op_handler(clock_cycle) 
+    
+        if instruction_count < len(instructions) and not halt_sig: 
+            (instr, dest, s1, s2) = get_instruction(instructions, instruction_count)
+            (res_name, res_pos) = get_resv_station(instr)
+            instruction_count += 1
 
         # NEED FUNCTION TO HANDLE WRITE_OPS
         # NEED FUNCTION TO HANDLE EXECUTES
         # NEED FUNCTION TO HANDLE READ_OPS
 
         if res_name is not None:
-            new_event = PipeEvent('READ_OPERAND', name, clock_cycle, 1)
-            new_event.set_destination(dest)
+            renamed_dest = "".join([res_name, str(res_pos)])
+            new_event = PipeEvent('RO', instr, clock_cycle, 1)
+            new_event.set_destination(renamed_dest)
             new_event.set_sources(s1, s2)
             new_event.set_resv_info(res_name, res_pos)
-   
-            EVENT_QUEUE.append(new_event) 
-        
+
+            rename_register(dest, res_name, res_pos)
+            update_reg_status(renamed_dest, 0)        
+
+            EVENT_QUEUE.append(new_event)
+
         else:
             print('Stalling the Pipe')
 
-        if name is 'halt':
+        if instr is 'halt':
             print('HALT RECEIVED')
             halt_sig = True
 
-        print_event_queue() 
+        print_reg_changes(clock_cycle) 
+        print_event_queue(clock_cycle)
         clock_cycle += 1
 
+        if len(EVENT_QUEUE) == 0:
+            print("SIM DONE") 
+            break;      
 
+        input("Press ENTER to go to next cycle")
+   
 
 if __name__ == '__main__':
 
