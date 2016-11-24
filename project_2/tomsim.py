@@ -691,6 +691,20 @@ def get_resv_station(op_name):
 
 # EVENT HANDLERS
 
+def rename_register(dest_reg, resv_name):
+    """Renames the destination register to
+    the given reservation station name.
+
+    Keyword arguments:
+    dest_reg -- name of the destination register
+
+    resv_name -- name of the reservation station
+
+    Returns: None
+    """
+    RES_RENAME[dest_reg] = resv_name  
+    
+
 def update_reg_status(resv_reg, status):
     """Updates the renamed register status
     to contain the computed value.
