@@ -81,6 +81,9 @@ class PipeEvent:
         self.source_2 = None
         self.location = None
         self.position = None
+        self.func_unit = None
+        self.func_id = None 
+         
 
     def __str__(self):
         return """Event:       {}
@@ -101,6 +104,31 @@ class PipeEvent:
                       self.end,
                       self.location,
                       self.position)
+
+    def set_fu_info(self, fu_name, fu_id):
+        """Sets the functional unit information
+
+        Keyword arguments:
+        fu_name -- name of the functional unit
+
+        fu_id -- id of the functional unit
+        
+        Returns: None
+        """
+        self.func_unit = fu_name
+        self.func_id = fu_id 
+
+    
+    def get_fu_info(self):
+        """Gets the functional unit information
+
+        Keyword arguments:
+        None
+
+        Returns: Tuple
+        """
+        return (self.func_unit, self.func_id)
+
 
     def get_instruction(self):
         """Returns the instruction type of the event
@@ -348,6 +376,16 @@ class FunctionalUnit:
                        self.end_cycle,
                        self.destination)
 
+    def get_latency(self):
+        """Gets the latency of the functional unit
+
+        Keyword arguments:
+        None
+
+        Return: Int
+        """
+        return self.latency
+
     def set_status(self, status):
         """Sets the status of a functional unit
 
@@ -368,6 +406,8 @@ class FunctionalUnit:
 
         Return: Int FREE (0) or BUSY (1)
         """
+        return self.status
+
 
     def get_statistics(self):
         """Gets the statistics for the functional unit
@@ -651,6 +691,20 @@ def get_resv_station(op_name):
 
 # EVENT HANDLERS
 
+def update_reg_status(resv_reg, status):
+    """Updates the renamed register status
+    to contain the computed value.
+
+    Keyword arguments:
+    resv_reg -- key for dictionary indicating renamed
+                register
+    
+    status -- the status to give the resv_reg
+
+    Returns: None 
+    """
+    RES_STATUS[resv_reg] = status
+
 
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
@@ -760,21 +814,21 @@ def find_func_unit(instr):
         for int_fu in INTEGER:
             if int_fu.get_status() == FREE:
                 int_fu.set_status(BUSY)
-                return fu_position
+                return (fu_position, int_fu.get_latency())
 
             fu_position += 1
     elif instr in div_operations:
         for div_fu in DIVIDER:
             if div_fu.get_status() == FREE:
                 div_fu.set_status(BUSY)
-                return fu_position
+                return (fu_position, div_fu.get_latency())
 
         fu_position += 1
     elif instr is 'mul':
         for mul_fu in MULTIPLIER:
             if mul_fu.get_status() == FREE:
                 mul_fu.set_status(BUSY)
-                return fu_position
+                return (fu_position, mul_fu.get_latency())
 
         fu_position += 1
 
@@ -782,7 +836,7 @@ def find_func_unit(instr):
         for ld_fu in LOAD:
             if ld_fu.get_status() == FREE:
                 ld_fu.set_status(BUSY)
-                return fu_position
+                return (fu_position, ld_fu.get_latency())
 
         fu_position += 1
 
@@ -790,11 +844,11 @@ def find_func_unit(instr):
         for sw_fu in STORE:
             if sw_fu.get_status() == FREE:
                 sw_fu.set_status(BUSY)
-                return fu_position
+                return (fu_position, sw_fu.get_latency())
 
         fu_position += 1
 
-    return -1
+    return (-1, -1)
 
 
 def read_op_handler(current_cycle):
@@ -822,11 +876,11 @@ def read_op_handler(current_cycle):
                 (s1, s2) = event.get_sources()
                 (s1_status, s2_status) = check_sources(s1, s2)
                 if (s1_status, s2_status) == (1, 1):
-                    pos = find_func_unit(event.get_instruction())
-                    event.update_event('EXEC')
-                    event.update_start(current_cycle)
-                    # MUST GET LATENCY OF FU
-                    event.update_end(current_cycle + 1)
+                    (pos, latency) = find_func_unit(event.get_instruction())
+                    if pos != -1:
+                        event.update_event('EXEC')
+                        event.update_start(current_cycle)
+                        event.update_end(current_cycle + latency)
                 else:
                     event.update_end(current_cycle + 1)
 
