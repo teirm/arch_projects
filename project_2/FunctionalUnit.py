@@ -106,25 +106,12 @@ class FunctionalUnit:
 
         return self.destination
 
-    def start_op(self, current_cycle):
-        """Starts execution of the functional unit.  The unit is now busy
-
-        Keyword arguments:
-        current_cycle -- the cycle on which execution begins
-
-        Returns: None
-        """
-
-        self.status = BUSY
-        self.instruction_count += 1
-        self.end_cycle = self.latency + current_cycle
-
-    def end_op(self):
-        """Ends the execution of the functional unit.  The unit is now free
+    def increment_instr(self):
+        """Increments the instruction count for the FU
 
         Keyword arguments:
         None
 
-        Returns None
+        Returns: None
         """
-        self.status = FREE
+        self.instruction_count += 1

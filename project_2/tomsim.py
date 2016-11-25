@@ -437,18 +437,23 @@ def free_units(location, position, fu_pos):
     if location is 'INT':
         INT_RS[position] = FREE
         INTEGER[fu_pos].set_status(FREE)
+        INTEGER[fu_pos].increment_instr() 
     elif location is 'DIV':
         DIV_RS[position] = FREE 
         DIVIDER[fu_pos].set_status(FREE)
+        STORE[fu_pos].increment_instr() 
     elif location is 'MULT':
         MULT_RS[position] = FREE 
         MULTIPLIER[fu_pos].set_status(FREE)
+        STORE[fu_pos].increment_instr() 
     elif location is 'LD':
         LD_RS[position] = FREE
         LOAD[fu_pos].set_status(FREE)
+        STORE[fu_pos].increment_instr() 
     else:
         ST_RS[position] = FREE
         STORE[fu_pos].set_status(FREE)
+        STORE[fu_pos].increment_instr() 
 
 
 def broadcast(renamed_reg, status):
@@ -475,8 +480,6 @@ def broadcast(renamed_reg, status):
                 event.set_source_2_status(1)
 
 # EVENT HANDLERS
-
-
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
     If an event is found that can be processed on the
@@ -531,7 +534,6 @@ def exec_handler(current_cycle):
     Returns: Int indiciatng the number of events found
              and processed.
     """
-
     events_processed = 0
 
     for event in EVENT_QUEUE:
@@ -715,6 +717,17 @@ def print_event_queue(clock_cycle):
     print('-------------------------------')
 
 
+def check_halt_sig():
+    """Checks if a halt signal was received
+
+    Keyword arguments:
+    None
+
+    Returns: None
+    """
+    return RES_STATUS['HALT'] == 1
+
+
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
        based on the information in the configuration
@@ -727,20 +740,24 @@ def tomsim(trace_file, config_file, output_file):
 
        Return: None
     """
+    RES_STATUS['HALT'] = 0
     halt_sig = False
     instruction_count = 0
     clock_cycle = 0
     stalls = 0
+    
     parse_config(config_file)
-
     instructions = parse_trace(trace_file)
-#    print(instructions)
 
     while True:
         (res_name, res_pos) = (None, None)
         write_op_handler(clock_cycle)
         exec_handler(clock_cycle)
         read_op_handler(clock_cycle)
+
+        if check_halt_sig():
+            print('HALT RECEIVED')
+            halt_sig = True
 
         if instruction_count < len(instructions) and not halt_sig:
             (instr, dest, s1, s1_stat, s2, s2_stat) = get_instruction(
@@ -749,7 +766,11 @@ def tomsim(trace_file, config_file, output_file):
             # Only prepare to fetch next instruction if no stall
 
         if res_name is not None and res_name is not 'STALL':
-            renamed_dest = "".join([res_name, str(res_pos)])
+            if instr is 'halt':
+                renamed_dest = 'HALT'
+            else:  
+                renamed_dest = "".join([res_name, str(res_pos)])
+            
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
             (s1_rename, s2_rename) = rename_sources(s1, s2)         
@@ -764,15 +785,13 @@ def tomsim(trace_file, config_file, output_file):
 
             EVENT_QUEUE.append(new_event)
             instruction_count += 1
+
         elif res_name is 'STALL':
             print('Stalling the Pipe')
             stalls += 1
         else:
             print('Out of instructions')
 
-        if instr is 'halt':
-            print('HALT RECEIVED')
-            halt_sig = True
 
         get_unit_statistics()
         print_reg_changes(clock_cycle)
@@ -783,7 +802,7 @@ def tomsim(trace_file, config_file, output_file):
             print("SIM DONE")
             break
 
-        input("Press ENTER to go to next cycle")
+#        input("Press ENTER to go to next cycle")
 
     stat_dict = process_statistics(clock_cycle, stalls) 
     
