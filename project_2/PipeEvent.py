@@ -6,6 +6,7 @@ Author:  Cyrus Ramavarapu
 Date:    19 November 2016
 """
 
+
 class PipeEvent:
     """Event entry for tomsim to model ISSUE,
     READ_OPERAND, EXECUTE, and WRITE_REGISTER
@@ -44,7 +45,7 @@ class PipeEvent:
                       self.location,
                       self.position)
 
-    def set_fu_info(self, fu_name, fu_id):
+    def set_fu_info(self, fu_id):
         """Sets the functional unit information
 
         Keyword arguments:
@@ -54,7 +55,6 @@ class PipeEvent:
 
         Returns: None
         """
-        self.func_unit = fu_name
         self.func_id = fu_id
 
     def get_fu_info(self):
@@ -65,7 +65,7 @@ class PipeEvent:
 
         Returns: Tuple
         """
-        return (self.func_unit, self.func_id)
+        return (self.location, self.func_id)
 
     def get_instruction(self):
         """Returns the instruction type of the event

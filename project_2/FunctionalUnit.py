@@ -10,6 +10,7 @@ Date:    19 November 2016
 BUSY = 1
 FREE = 0
 
+
 class FunctionalUnit:
     """FunctionalUnit Class to encompass methods needed for
        Integer, Divide, Multipler, Load, Store Functional

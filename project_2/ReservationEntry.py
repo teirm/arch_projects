@@ -5,6 +5,8 @@ Course:  CS2410
 Author:  Cyrus Ramavarapu
 Date:    19 November 2016
 """
+
+
 class ReservationEntry:
     """ReservationEntry Class to model the entries into
     the different reserveration stations for each set of
@@ -78,4 +80,3 @@ class ReservationEntry:
         Returns: Boolean
         """
         return bool(self.source_1 is not None and self.source_2 is not None)
-

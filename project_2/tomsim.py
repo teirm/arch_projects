@@ -154,13 +154,15 @@ def parse_config(config_file):
     for functional_unit, config_list in config_values.items():
 
         unit_config = config_list[0]
-
         if functional_unit == 'integer':
             INT_RS_MAX = unit_config['resnumber']
             latency = unit_config['latency']
 
             for i in range(unit_config['number']):
                 INTEGER.append(FunctionalUnit(i, latency))
+
+            for _ in range(INT_RS_MAX):
+                INT_RS.append(FREE)
 
         elif functional_unit == 'divider':
             DIV_RS_MAX = unit_config['resnumber']
@@ -169,12 +171,18 @@ def parse_config(config_file):
             for i in range(unit_config['number']):
                 DIVIDER.append(FunctionalUnit(i, latency))
 
+            for _ in range(DIV_RS_MAX):
+                DIV_RS.append(FREE)
+
         elif functional_unit == 'multiplier':
             MULT_RS_MAX = unit_config['resnumber']
             latency = unit_config['latency']
 
             for i in range(unit_config['number']):
                 MULTIPLIER.append(FunctionalUnit(i, latency))
+
+            for _ in range(MULT_RS_MAX):
+                MULT_RS.append(FREE)
 
         elif functional_unit == 'load':
             LD_RS_MAX = unit_config['resnumber']
@@ -183,12 +191,18 @@ def parse_config(config_file):
             for i in range(unit_config['number']):
                 LOAD.append(FunctionalUnit(i, latency))
 
+            for _ in range(LD_RS_MAX):
+                LD_RS.append(FREE)
+
         elif functional_unit == 'store':
             ST_RS_MAX = unit_config['resnumber']
             latency = unit_config['latency']
 
             for i in range(unit_config['number']):
                 STORE.append(FunctionalUnit(i, latency))
+
+            for _ in range(ST_RS_MAX):
+                ST_RS.append(FREE)
 
         else:
             print('INVALID UNIT')
@@ -247,48 +261,38 @@ def get_resv_station(op_name):
         'put',
         'halt']
     div_operations = ['div', 'exp', 'mod']
+    ret_val = (None, -1)
 
     if op_name in int_operations:
-        if len(INT_RS) < INT_RS_MAX:
-            print('INT RS AVAILABLE FOR {}'.format(op_name))
-            ret_val = ('INT', len(INT_RS))
-            INT_RS.append(BUSY)
-        else:
-            print('INT RS NOT AVAILABLE FOR {}'.format(op_name))
-            ret_val = (None, -1)
+        for i in range(INT_RS_MAX):
+            if INT_RS[i] == FREE:
+                INT_RS[i] = BUSY
+                ret_val = ('INT', i)      
+                break
     elif op_name in div_operations:
-        if len(DIV_RS) < DIV_RS_MAX:
-            print('DIV RS AVAILABLE FOR {}'.format(op_name))
-            ret_val = ('DIV', len(DIV_RS))
-            DIV_RS.append(BUSY)
-        else:
-            print('DIV RS NOT AVAILABLE FOR {}'.format(op_name))
-            ret_val = (None, -1)
+        for i in range(DIV_RS_MAX):
+            if DIV_RS[i] == FREE:
+                DIV_RS[i] = BUSY
+                ret_val = ('DIV', i)
+                break  
     elif op_name is 'mul':
-        if len(MULT_RS) < MULT_RS_MAX:
-            print('MULT RS AVAILABLE FOR {}'.format(op_name))
-            ret_val = ('MULT', len(MULTIPLIER))
-            MULT_RS.append(BUSY)
-        else:
-            print('MULT RS NOT AVAILABLE FOR {}'.format(op_name))
-            ret_val = (None, -1)
+        for i in range(MULT_RS_MAX):
+            if MULT_RS[i] == FREE:
+                MULT_RS[i] = BUSY
+                ret_val = ('MULT', i) 
+                break;  
     elif op_name is 'lw':
-        if len(LD_RS) < LD_RS_MAX:
-            print('LD RS AVAILABLE FOR {}'.format(op_name))
-            LD_RS.append(BUSY)
-            ret_val = ('LD', len(LOAD))
-        else:
-            print('LD RS NOT AVAILABLE FOR {}'.format(op_name))
-            ret_val = (None, -1)
+        for i in range(LD_RS_MAX):
+            if LD_RS[i] == FREE:
+                LD_RS[i] = BUSY
+                ret_val = ('LD', i)         
+                break;
     else:
-        if len(ST_RS) < ST_RS_MAX:
-            print('ST RS AVAILABLE FOR {}'.format(op_name))
-            ST_RS.append(BUSY)
-            ret_val = ('ST', len(STORE))
-        else:
-            print('ST RS NOT AVAILABLE FOR {}'.format(op_name))
-            ret_val = (None, -1)
-
+        for i in range(ST_RS_MAX):
+            if ST_RS[i] == FREE:
+                ST_RS[i] = BUSY
+                ret_val = ('ST', i)    
+                break;
     return ret_val
 
 
@@ -321,6 +325,35 @@ def update_reg_status(resv_reg, status):
     RES_STATUS[resv_reg] = status
 
 
+def free_units(location, position, fu_pos):
+    """Frees the given functional unit and Res station
+    after a WO is processed.
+
+    Keyword arguments:
+    location -- the type of FU array
+    position -- which position in the FU array
+    
+    Returns: None
+    """
+    
+    if location is 'INT':
+        INT_RS.remove(INT_RS[position])
+        INTEGER[fu_pos].set_status(FREE)
+    elif location is 'DIV':
+        DIV_RS.remove(DIV_RS[position])
+        DIVIDER[fu_pos].set_status(FREE)
+    elif location is 'MULT':
+        MULT_RS.remove(MULT_RS[position])
+        MULTIPLIER[fu_pos].set_status(FREE)
+    elif location is 'LD':
+        LD_RS.remove(LD_RS[position])
+        LOAD[fu_pos].set_status(FREE)
+    else:
+        ST_RS.remove(ST_RS[position])
+        STORE[fu_pos].set_status(FREE)
+
+
+
 # EVENT HANDLERS
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
@@ -346,8 +379,9 @@ def write_op_handler(current_cycle):
             event_name = event.get_event()
             fu_destination = event.get_destination()
             (location, position) = event.get_resv_info()
+            (location, fu_id) = event.get_fu_info()
             update_reg_status(fu_destination, 1) 
-            # free FU for event_name and RS
+            free_units(location, position, fu_id) 
             EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
             events_processed += 1
 
@@ -503,6 +537,7 @@ def read_op_handler(current_cycle):
                         event.update_event('EXEC')
                         event.update_start(current_cycle)
                         event.update_end(current_cycle + latency)
+                        event.set_fu_info(pos)
                 else:
                     event.update_end(current_cycle + 1)
 
@@ -578,9 +613,6 @@ def tomsim(trace_file, config_file, output_file):
             (res_name, res_pos) = get_resv_station(instr)
             instruction_count += 1
 
-        # NEED FUNCTION TO HANDLE WRITE_OPS
-        # NEED FUNCTION TO HANDLE EXECUTES
-        # NEED FUNCTION TO HANDLE READ_OPS
 
         if res_name is not None:
             renamed_dest = "".join([res_name, str(res_pos)])
