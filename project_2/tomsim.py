@@ -70,14 +70,50 @@ OPCODE_MAP = {'00000': 'add',
 REG_FILE_READS = 0
 
 
-def process_statistiscs(current_cycle, stalls):
+def process_statistics(current_cycle, stalls):
     """Processes the statistics for the simulation
 
     Keyword arguments:
 
     Returns: Dictionary
     """
+    statistics = {}
+    statistics['cycles'] = current_cycle
+    statistics['stalls'] = stalls
+    statistics['reg reads'] = REG_FILE_READS
 
+    statistics['integer'] = [{}]
+    statistics['multiplier'] = [{}]
+    statistics['divider'] = [{}]
+    statistics['load'] = [{}]
+    statistics['store'] = [{}]
+
+    for func_unit in DIVIDER:
+        (func_id, instruction_count) = func_unit.get_statistics()
+        statistics['divider'][0]['id'] = func_id
+        statistics['divider'][0]['instructions'] = instruction_count
+
+    for func_unit in MULTIPLIER:
+        (func_id, instruction_count) = func_unit.get_statistics()
+        statistics['multiplier'][0]['id'] = func_id
+        statistics['multiplier'][0]['instructions'] = instruction_count
+
+    for func_unit in INTEGER:
+        (func_id, instruction_count) = func_unit.get_statistics()
+        statistics['integer'][0]['id'] = func_id
+        statistics['integer'][0]['instructions'] = instruction_count
+
+    for func_unit in LOAD:
+        (func_id, instruction_count) = func_unit.get_statistics()
+        statistics['load'][0]['id'] = func_id
+        statistics['load'][0]['instructions'] = instruction_count
+
+    for func_unit in STORE:
+        (func_id, instruction_count) = func_unit.get_statistics()
+        statistics['store'][0]['id'] = func_id
+        statistics['store'][0]['instructions'] = instruction_count
+
+    return statistics
 
 def parse_trace(trace_file):
     """Parses the trace TEXT file into an array
@@ -142,13 +178,19 @@ def get_instruction(instructions, instruction_count):
         source_1 = None
         source_2 = None
         source_1_status = 1
-        source_2_status = 1 
+        source_2_status = 1
     else:
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
         source_2 = ''.join(['r', str(int(next_instruction[11:14], 2))])
 
-    return (instruction_type, dest, source_1, source_1_status, source_2, source_2_status)
+    return (
+        instruction_type,
+        dest,
+        source_1,
+        source_1_status,
+        source_2,
+        source_2_status)
 
 
 def parse_config(config_file):
@@ -371,30 +413,33 @@ def free_units(location, position, fu_pos):
         ST_RS.remove(ST_RS[position])
         STORE[fu_pos].set_status(FREE)
 
+
 def broadcast(renamed_reg, status):
     """Broadcasts the value of the renameded reg
     to all RO events that might need the value
-    
+
     Keyword arguments:
     renamed_reg -- name of the renamed register
-    
+
     status -- status to broadcast
-    
+
     Returns: None
     """
-    
+
     for event in EVENT_QUEUE:
         if event.get_event() == 'RO':
-            (s1_stat, s2_stat) = event.get_source_statuses()  
+            (s1_stat, s2_stat) = event.get_source_statuses()
             (source_1, source_2) = event.get_sources()
-            
+
             if s1_stat != 1 and source_1 == renamed_reg:
                 event.set_source_1_status(1)
-            
+
             if s2_stat != 1 and source_2 == renamed_reg:
                 event.set_source_2_status(1)
 
 # EVENT HANDLERS
+
+
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
     If an event is found that can be processed on the
@@ -420,7 +465,7 @@ def write_op_handler(current_cycle):
             fu_destination = event.get_destination()
             (location, position) = event.get_resv_info()
             (location, fu_id) = event.get_fu_info()
-            broadcast(fu_destination, 1) 
+            broadcast(fu_destination, 1)
             update_reg_status(fu_destination, 1)
             free_units(location, position, fu_id)
             EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
@@ -465,16 +510,16 @@ def check_sources(source_name):
     from RO to EXEC with the necessary sources
 
     Keyword arguments:
-    source_name -- name of the source  
+    source_name -- name of the source
 
     Return: Tuple with (s1 status, s2 status)
     """
-    global REG_FILE_READS 
+    global REG_FILE_READS
 
     source_status = RES_STATUS[source_name]
     REG_FILE_READS += 1
 
-    return source_status 
+    return source_status
 
 
 def find_func_unit(instr):
@@ -565,17 +610,17 @@ def read_op_handler(current_cycle):
             # NEED TO FIND OLDEST FOR A GIVEN FU
             if event.get_end() == current_cycle:
                 (s1, s2) = event.get_sources()
-                
+
                 (s1_status, s2_status) = event.get_source_statuses()
-                
+
                 if s1_status != 1:
-                    s1_status = check_sources(s1)  
-                    event.set_source_1_status(s1_status) 
-                 
+                    s1_status = check_sources(s1)
+                    event.set_source_1_status(s1_status)
+
                 if s2_status != 1:
                     s2_status = check_sources(s2)
-                    event.set_source_2_status(s2_status)  
-                  
+                    event.set_source_2_status(s2_status)
+
                 if event.get_source_statuses() == (1, 1):
                     (pos, latency) = find_func_unit(event.get_instruction())
                     if pos != -1:
@@ -692,6 +737,12 @@ def tomsim(trace_file, config_file, output_file):
 
         input("Press ENTER to go to next cycle")
 
+    stat_dict = process_statistics(clock_cycle+1, stalls) 
+    
+    with open(output_file, 'w') as ofp:
+        json.dump(stat_dict, ofp)
+
+    pprint(stat_dict)
 
 if __name__ == '__main__':
 

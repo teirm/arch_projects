@@ -100,7 +100,7 @@ class PipeEvent:
         Return: None
         """
         self.source_1_status = s1_status
-    
+
     def set_source_2_status(self, s2_status):
         """Sets the stats for source 2
 
