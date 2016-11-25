@@ -371,6 +371,33 @@ def rename_register(dest_reg, resv_name, res_pos):
     REG_RENAME[dest_reg] = "".join([resv_name, str(res_pos)])
 
 
+def rename_sources(s1_name, s2_name):
+    """Renames the source registers to use the reservation
+    station mapped values.
+
+    Keyword arguments:
+    s1_name -- source 1 register
+    s2_name -- source 2 register
+
+    Returns: Tuple
+    """
+   
+    if s1_name is 'IMM8':
+        s1_renamed = 'IMM8'
+    elif s1_name is None:
+        s1_renamed = None
+    else:
+        s1_renamed = REG_RENAME[s1_name]
+                 
+    if s2_name is not None:
+        s2_renamed = REG_RENAME[s2_name] 
+    else:
+        s2_renamed = None
+
+    return (s1_renamed, s2_renamed)
+    
+
+
 def update_reg_status(resv_reg, status):
     """Updates the renamed register status
     to contain the computed value.
@@ -516,8 +543,12 @@ def check_sources(source_name):
     """
     global REG_FILE_READS
 
-    source_status = RES_STATUS[source_name]
-    REG_FILE_READS += 1
+    if source_name in RES_STATUS.keys(): 
+        source_status = RES_STATUS[source_name]
+        if source_status == 1: 
+            REG_FILE_READS += 1
+    else:
+        source_status = 0
 
     return source_status
 
@@ -707,7 +738,8 @@ def tomsim(trace_file, config_file, output_file):
             renamed_dest = "".join([res_name, str(res_pos)])
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
-            new_event.set_sources(s1, s2)
+            (s1_rename, s2_rename) = rename_sources(s1, s2)         
+            new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
             new_event.set_source_1_status(s1_stat)
             new_event.set_source_2_status(s2_stat)
