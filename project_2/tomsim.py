@@ -261,38 +261,38 @@ def get_resv_station(op_name):
         'put',
         'halt']
     div_operations = ['div', 'exp', 'mod']
-    ret_val = (None, -1)
+    ret_val = ('STALL', -1)
 
     if op_name in int_operations:
         for i in range(INT_RS_MAX):
             if INT_RS[i] == FREE:
                 INT_RS[i] = BUSY
-                ret_val = ('INT', i)      
+                ret_val = ('INT', i)
                 break
     elif op_name in div_operations:
         for i in range(DIV_RS_MAX):
             if DIV_RS[i] == FREE:
                 DIV_RS[i] = BUSY
                 ret_val = ('DIV', i)
-                break  
+                break
     elif op_name is 'mul':
         for i in range(MULT_RS_MAX):
             if MULT_RS[i] == FREE:
                 MULT_RS[i] = BUSY
-                ret_val = ('MULT', i) 
-                break;  
+                ret_val = ('MULT', i)
+                break
     elif op_name is 'lw':
         for i in range(LD_RS_MAX):
             if LD_RS[i] == FREE:
                 LD_RS[i] = BUSY
-                ret_val = ('LD', i)         
-                break;
+                ret_val = ('LD', i)
+                break
     else:
         for i in range(ST_RS_MAX):
             if ST_RS[i] == FREE:
                 ST_RS[i] = BUSY
-                ret_val = ('ST', i)    
-                break;
+                ret_val = ('ST', i)
+                break
     return ret_val
 
 
@@ -307,7 +307,7 @@ def rename_register(dest_reg, resv_name, res_pos):
 
     Returns: None
     """
-    REG_RENAME[dest_reg] = "".join([resv_name, str(res_pos)]) 
+    REG_RENAME[dest_reg] = "".join([resv_name, str(res_pos)])
 
 
 def update_reg_status(resv_reg, status):
@@ -332,10 +332,10 @@ def free_units(location, position, fu_pos):
     Keyword arguments:
     location -- the type of FU array
     position -- which position in the FU array
-    
+
     Returns: None
     """
-    
+
     if location is 'INT':
         INT_RS.remove(INT_RS[position])
         INTEGER[fu_pos].set_status(FREE)
@@ -351,7 +351,6 @@ def free_units(location, position, fu_pos):
     else:
         ST_RS.remove(ST_RS[position])
         STORE[fu_pos].set_status(FREE)
-
 
 
 # EVENT HANDLERS
@@ -380,8 +379,8 @@ def write_op_handler(current_cycle):
             fu_destination = event.get_destination()
             (location, position) = event.get_resv_info()
             (location, fu_id) = event.get_fu_info()
-            update_reg_status(fu_destination, 1) 
-            free_units(location, position, fu_id) 
+            update_reg_status(fu_destination, 1)
+            free_units(location, position, fu_id)
             EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
             events_processed += 1
 
@@ -431,12 +430,12 @@ def check_sources(s1, s2):
     """
     if s1 is 'IMM8' or s1 is None:
         s1_status = 1
-    else: 
+    else:
         s1_status = RES_STATUS[s1]
-   
+
     if s2 is None:
         s2_status = 1
-    else: 
+    else:
         s2_status = RES_STATUS[s2]
 
     return (s1_status, s2_status)
@@ -561,7 +560,6 @@ def print_reg_changes(clock_cycle):
     pprint(RES_STATUS)
 
 
-
 def print_event_queue(clock_cycle):
     """Prints out all elements in the EVENT_QUEUE
 
@@ -570,14 +568,14 @@ def print_event_queue(clock_cycle):
 
     Returns: None
     """
-    
+
     print('CURRENT CYCLE: {}'.format(clock_cycle))
     print('EVENT QUEUE LENGTH: {}'.format(len(EVENT_QUEUE)))
 
     for event in EVENT_QUEUE:
         print('-------------------------------')
         print(event)
-    
+
     print('-------------------------------')
 
 
@@ -603,18 +601,18 @@ def tomsim(trace_file, config_file, output_file):
 #    print(instructions)
 
     while True:
-        (res_name, res_pos) = (None, None) 
-        read_op_handler(clock_cycle) 
-        exec_handler(clock_cycle) 
-        write_op_handler(clock_cycle) 
-    
-        if instruction_count < len(instructions) and not halt_sig: 
-            (instr, dest, s1, s2) = get_instruction(instructions, instruction_count)
+        (res_name, res_pos) = (None, None)
+        read_op_handler(clock_cycle)
+        exec_handler(clock_cycle)
+        write_op_handler(clock_cycle)
+
+        if instruction_count < len(instructions) and not halt_sig:
+            (instr, dest, s1, s2) = get_instruction(
+                instructions, instruction_count)
             (res_name, res_pos) = get_resv_station(instr)
-            instruction_count += 1
+            # Only prepare to fetch next instruction if no stall
 
-
-        if res_name is not None:
+        if res_name is not None and res_name is not 'STALL':
             renamed_dest = "".join([res_name, str(res_pos)])
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
@@ -622,27 +620,29 @@ def tomsim(trace_file, config_file, output_file):
             new_event.set_resv_info(res_name, res_pos)
 
             rename_register(dest, res_name, res_pos)
-            update_reg_status(renamed_dest, 0)        
+            update_reg_status(renamed_dest, 0)
 
             EVENT_QUEUE.append(new_event)
-
-        else:
+            instruction_count += 1
+        elif res_name is 'STALL':
             print('Stalling the Pipe')
+        else:
+            print('Out of instructions')
 
         if instr is 'halt':
             print('HALT RECEIVED')
             halt_sig = True
 
-        print_reg_changes(clock_cycle) 
+        print_reg_changes(clock_cycle)
         print_event_queue(clock_cycle)
         clock_cycle += 1
 
         if len(EVENT_QUEUE) == 0:
-            print("SIM DONE") 
-            break;      
+            print("SIM DONE")
+            break
 
         input("Press ENTER to go to next cycle")
-   
+
 
 if __name__ == '__main__':
 
