@@ -727,6 +727,7 @@ def tomsim(trace_file, config_file, output_file):
             print('HALT RECEIVED')
             halt_sig = True
 
+        get_unit_statistics()
         print_reg_changes(clock_cycle)
         print_event_queue(clock_cycle)
         clock_cycle += 1
@@ -737,7 +738,7 @@ def tomsim(trace_file, config_file, output_file):
 
         input("Press ENTER to go to next cycle")
 
-    stat_dict = process_statistics(clock_cycle+1, stalls) 
+    stat_dict = process_statistics(clock_cycle, stalls) 
     
     with open(output_file, 'w') as ofp:
         json.dump(stat_dict, ofp)
