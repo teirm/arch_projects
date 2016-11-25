@@ -82,36 +82,46 @@ def process_statistics(current_cycle, stalls):
     statistics['stalls'] = stalls
     statistics['reg reads'] = REG_FILE_READS
 
-    statistics['integer'] = [{}]
-    statistics['multiplier'] = [{}]
-    statistics['divider'] = [{}]
-    statistics['load'] = [{}]
-    statistics['store'] = [{}]
+    statistics['integer'] = []
+    statistics['multiplier'] = []
+    statistics['divider'] = []
+    statistics['load'] = []
+    statistics['store'] = []
 
     for func_unit in DIVIDER:
+        temp_dict = {}
         (func_id, instruction_count) = func_unit.get_statistics()
-        statistics['divider'][0]['id'] = func_id
-        statistics['divider'][0]['instructions'] = instruction_count
+        temp_dict['id'] = func_id
+        temp_dict['instructions'] = instruction_count
+        statistics['divider'].append(temp_dict)
 
     for func_unit in MULTIPLIER:
+        temp_dict = {}
         (func_id, instruction_count) = func_unit.get_statistics()
-        statistics['multiplier'][0]['id'] = func_id
-        statistics['multiplier'][0]['instructions'] = instruction_count
+        temp_dict['id'] = func_id
+        temp_dict['instructions'] = instruction_count
+        statistics['multiplier'].append(temp_dict)
 
     for func_unit in INTEGER:
+        temp_dict = {}
         (func_id, instruction_count) = func_unit.get_statistics()
-        statistics['integer'][0]['id'] = func_id
-        statistics['integer'][0]['instructions'] = instruction_count
+        temp_dict['id'] = func_id
+        temp_dict['instructions'] = instruction_count
+        statistics['integer'].append(temp_dict)
 
     for func_unit in LOAD:
+        temp_dict = {}
         (func_id, instruction_count) = func_unit.get_statistics()
-        statistics['load'][0]['id'] = func_id
-        statistics['load'][0]['instructions'] = instruction_count
+        temp_dict['id'] = func_id
+        temp_dict['instructions'] = instruction_count
+        statistics['load'].append(temp_dict)
 
     for func_unit in STORE:
+        temp_dict = {}
         (func_id, instruction_count) = func_unit.get_statistics()
-        statistics['store'][0]['id'] = func_id
-        statistics['store'][0]['instructions'] = instruction_count
+        temp_dict['id'] = func_id
+        temp_dict['instructions'] = instruction_count
+        statistics['store'].append(temp_dict)
 
     return statistics
 
@@ -425,19 +435,19 @@ def free_units(location, position, fu_pos):
     """
 
     if location is 'INT':
-        INT_RS.remove(INT_RS[position])
+        INT_RS[position] = FREE
         INTEGER[fu_pos].set_status(FREE)
     elif location is 'DIV':
-        DIV_RS.remove(DIV_RS[position])
+        DIV_RS[position] = FREE 
         DIVIDER[fu_pos].set_status(FREE)
     elif location is 'MULT':
-        MULT_RS.remove(MULT_RS[position])
+        MULT_RS[position] = FREE 
         MULTIPLIER[fu_pos].set_status(FREE)
     elif location is 'LD':
-        LD_RS.remove(LD_RS[position])
+        LD_RS[position] = FREE
         LOAD[fu_pos].set_status(FREE)
     else:
-        ST_RS.remove(ST_RS[position])
+        ST_RS[position] = FREE
         STORE[fu_pos].set_status(FREE)
 
 
@@ -486,6 +496,8 @@ def write_op_handler(current_cycle):
     events_processed = 0
     queue_position = 0
 
+    events_for_removal = []
+
     for event in EVENT_QUEUE:
         if event.get_end() == current_cycle and event.get_event() == 'WO':
             event_name = event.get_event()
@@ -495,10 +507,12 @@ def write_op_handler(current_cycle):
             broadcast(fu_destination, 1)
             update_reg_status(fu_destination, 1)
             free_units(location, position, fu_id)
-            EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
+            events_for_removal.append(event)
             events_processed += 1
 
-        queue_position += 1
+    
+    for removal in events_for_removal:
+        EVENT_QUEUE.remove(removal)
 
     return events_processed
 
@@ -724,9 +738,9 @@ def tomsim(trace_file, config_file, output_file):
 
     while True:
         (res_name, res_pos) = (None, None)
-        read_op_handler(clock_cycle)
-        exec_handler(clock_cycle)
         write_op_handler(clock_cycle)
+        exec_handler(clock_cycle)
+        read_op_handler(clock_cycle)
 
         if instruction_count < len(instructions) and not halt_sig:
             (instr, dest, s1, s1_stat, s2, s2_stat) = get_instruction(
@@ -743,9 +757,10 @@ def tomsim(trace_file, config_file, output_file):
             new_event.set_resv_info(res_name, res_pos)
             new_event.set_source_1_status(s1_stat)
             new_event.set_source_2_status(s2_stat)
-
-            rename_register(dest, res_name, res_pos)
-            update_reg_status(renamed_dest, 0)
+            
+            if dest is not None: 
+                rename_register(dest, res_name, res_pos)
+                update_reg_status(renamed_dest, 0)
 
             EVENT_QUEUE.append(new_event)
             instruction_count += 1

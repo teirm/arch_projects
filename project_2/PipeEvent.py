@@ -19,9 +19,9 @@ class PipeEvent:
         self.end = current_cycle + latency
         self.dest = None
         self.source_1 = None
-        self.source_2_status = 0
-        self.source_2 = None
         self.source_1_status = 0
+        self.source_2 = None
+        self.source_2_status = 0
         self.location = None
         self.position = None
         self.func_unit = None
@@ -33,6 +33,8 @@ class PipeEvent:
            Destination: {}
            Source 1:    {}
            Source 2:    {}
+           Source 1 Status: {}
+           Source 2 Status: {}
            Start:       {}
            End:         {}
            Location:    {}
@@ -42,6 +44,8 @@ class PipeEvent:
                       self.dest,
                       self.source_1,
                       self.source_2,
+                      self.source_1_status,
+                      self.source_2_status,
                       self.start,
                       self.end,
                       self.location,
