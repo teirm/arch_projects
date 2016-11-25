@@ -652,31 +652,33 @@ def read_op_handler(current_cycle):
     Returns: Int indiciatng the number of events found
              and processed.
     """
+  
+    # Sorts all events by age in descending order.
+    # Read ops will therefore be handling in decreasing age
+    EVENT_QUEUE.sort(key=lambda x: x.get_age(current_cycle), reverse=True)
+    
     for event in EVENT_QUEUE:
-        if event.get_event() == 'RO':
-            # NEED TO FIND OLDEST FOR A GIVEN FU
-            if event.get_end() == current_cycle:
-                (s1, s2) = event.get_sources()
+        if event.get_event() == 'RO' and event.get_end() == current_cycle:
+            (s1, s2) = event.get_sources()
+            (s1_status, s2_status) = event.get_source_statuses()
 
-                (s1_status, s2_status) = event.get_source_statuses()
+            if s1_status != 1:
+                s1_status = check_sources(s1)
+                event.set_source_1_status(s1_status)
 
-                if s1_status != 1:
-                    s1_status = check_sources(s1)
-                    event.set_source_1_status(s1_status)
+            if s2_status != 1:
+                s2_status = check_sources(s2)
+                event.set_source_2_status(s2_status)
 
-                if s2_status != 1:
-                    s2_status = check_sources(s2)
-                    event.set_source_2_status(s2_status)
-
-                if event.get_source_statuses() == (1, 1):
-                    (pos, latency) = find_func_unit(event.get_instruction())
-                    if pos != -1:
-                        event.update_event('EXEC')
-                        event.update_start(current_cycle)
-                        event.update_end(current_cycle + latency)
-                        event.set_fu_info(pos)
-                else:
-                    event.update_end(current_cycle + 1)
+            if event.get_source_statuses() == (1, 1):
+                (pos, latency) = find_func_unit(event.get_instruction())
+                if pos != -1:
+                    event.update_event('EXEC')
+                    event.update_start(current_cycle)
+                    event.update_end(current_cycle + latency)
+                    event.set_fu_info(pos)
+            else:
+                event.update_end(current_cycle + 1)
 
 
 def print_reg_changes(clock_cycle):
