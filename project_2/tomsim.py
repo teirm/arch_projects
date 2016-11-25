@@ -66,7 +66,17 @@ OPCODE_MAP = {'00000': 'add',
               '01101': 'halt',
               '01110': 'put'}
 
-# Need to store latencies some where
+# REG_FILE READ COUNT
+REG_FILE_READS = 0
+
+
+def process_statistiscs(current_cycle, stalls):
+    """Processes the statistics for the simulation
+
+    Keyword arguments:
+
+    Returns: Dictionary
+    """
 
 
 def parse_trace(trace_file):
@@ -110,26 +120,35 @@ def get_instruction(instructions, instruction_count):
 
     instruction_type = OPCODE_MAP[opcode]
 
+    source_1_status = 0
+    source_2_status = 0
+
     if instruction_type in i_type:
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
         # USE 'IMM8' to recoginize that the source operand
         # is immediately available
         source_1 = 'IMM8'
         source_2 = None
+        source_1_status = 1
+        source_2_status = 1
     elif instruction_type is 'put':
         dest = None
         source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
         source_2 = None
+        source_1_status = 0
+        source_2_status = 1
     elif instruction_type is 'halt':
         dest = None
         source_1 = None
         source_2 = None
+        source_1_status = 1
+        source_2_status = 1 
     else:
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
         source_2 = ''.join(['r', str(int(next_instruction[11:14], 2))])
 
-    return (instruction_type, dest, source_1, source_2)
+    return (instruction_type, dest, source_1, source_1_status, source_2, source_2_status)
 
 
 def parse_config(config_file):
@@ -352,6 +371,28 @@ def free_units(location, position, fu_pos):
         ST_RS.remove(ST_RS[position])
         STORE[fu_pos].set_status(FREE)
 
+def broadcast(renamed_reg, status):
+    """Broadcasts the value of the renameded reg
+    to all RO events that might need the value
+    
+    Keyword arguments:
+    renamed_reg -- name of the renamed register
+    
+    status -- status to broadcast
+    
+    Returns: None
+    """
+    
+    for event in EVENT_QUEUE:
+        if event.get_event() == 'RO':
+            (s1_stat, s2_stat) = event.get_source_statuses()  
+            (source_1, source_2) = event.get_sources()
+            
+            if s1_stat != 1 and source_1 == renamed_reg:
+                event.set_source_1_status(1)
+            
+            if s2_stat != 1 and source_2 == renamed_reg:
+                event.set_source_2_status(1)
 
 # EVENT HANDLERS
 def write_op_handler(current_cycle):
@@ -379,6 +420,7 @@ def write_op_handler(current_cycle):
             fu_destination = event.get_destination()
             (location, position) = event.get_resv_info()
             (location, fu_id) = event.get_fu_info()
+            broadcast(fu_destination, 1) 
             update_reg_status(fu_destination, 1)
             free_units(location, position, fu_id)
             EVENT_QUEUE.remove(EVENT_QUEUE[queue_position])
@@ -417,28 +459,22 @@ def exec_handler(current_cycle):
     return events_processed
 
 
-def check_sources(s1, s2):
-    """Checks the status of the renamed registers
+def check_sources(source_name):
+    """Checks the REGFILE status of the renamed registers
     to determine if a queued event can proceed
     from RO to EXEC with the necessary sources
 
     Keyword arguments:
-    s1 -- source operand 1
-    s2 -- source operand 2
+    source_name -- name of the source  
 
     Return: Tuple with (s1 status, s2 status)
     """
-    if s1 is 'IMM8' or s1 is None:
-        s1_status = 1
-    else:
-        s1_status = RES_STATUS[s1]
+    global REG_FILE_READS 
 
-    if s2 is None:
-        s2_status = 1
-    else:
-        s2_status = RES_STATUS[s2]
+    source_status = RES_STATUS[source_name]
+    REG_FILE_READS += 1
 
-    return (s1_status, s2_status)
+    return source_status 
 
 
 def find_func_unit(instr):
@@ -529,8 +565,18 @@ def read_op_handler(current_cycle):
             # NEED TO FIND OLDEST FOR A GIVEN FU
             if event.get_end() == current_cycle:
                 (s1, s2) = event.get_sources()
-                (s1_status, s2_status) = check_sources(s1, s2)
-                if (s1_status, s2_status) == (1, 1):
+                
+                (s1_status, s2_status) = event.get_source_statuses()
+                
+                if s1_status != 1:
+                    s1_status = check_sources(s1)  
+                    event.set_source_1_status(s1_status) 
+                 
+                if s2_status != 1:
+                    s2_status = check_sources(s2)
+                    event.set_source_2_status(s2_status)  
+                  
+                if event.get_source_statuses() == (1, 1):
                     (pos, latency) = find_func_unit(event.get_instruction())
                     if pos != -1:
                         event.update_event('EXEC')
@@ -594,7 +640,7 @@ def tomsim(trace_file, config_file, output_file):
     halt_sig = False
     instruction_count = 0
     clock_cycle = 0
-
+    stalls = 0
     parse_config(config_file)
 
     instructions = parse_trace(trace_file)
@@ -607,7 +653,7 @@ def tomsim(trace_file, config_file, output_file):
         write_op_handler(clock_cycle)
 
         if instruction_count < len(instructions) and not halt_sig:
-            (instr, dest, s1, s2) = get_instruction(
+            (instr, dest, s1, s1_stat, s2, s2_stat) = get_instruction(
                 instructions, instruction_count)
             (res_name, res_pos) = get_resv_station(instr)
             # Only prepare to fetch next instruction if no stall
@@ -618,6 +664,8 @@ def tomsim(trace_file, config_file, output_file):
             new_event.set_destination(renamed_dest)
             new_event.set_sources(s1, s2)
             new_event.set_resv_info(res_name, res_pos)
+            new_event.set_source_1_status(s1_stat)
+            new_event.set_source_2_status(s2_stat)
 
             rename_register(dest, res_name, res_pos)
             update_reg_status(renamed_dest, 0)
@@ -626,6 +674,7 @@ def tomsim(trace_file, config_file, output_file):
             instruction_count += 1
         elif res_name is 'STALL':
             print('Stalling the Pipe')
+            stalls += 1
         else:
             print('Out of instructions')
 

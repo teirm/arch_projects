@@ -19,7 +19,9 @@ class PipeEvent:
         self.end = current_cycle + latency
         self.dest = None
         self.source_1 = None
+        self.source_2_status = 0
         self.source_2 = None
+        self.source_1_status = 0
         self.location = None
         self.position = None
         self.func_unit = None
@@ -88,6 +90,36 @@ class PipeEvent:
         """
         self.source_1 = s1
         self.source_2 = s2
+
+    def set_source_1_status(self, s1_status):
+        """Sets the stats for source 1
+
+        Keyword arguments:
+        s1_status -- the status of s1
+
+        Return: None
+        """
+        self.source_1_status = s1_status
+    
+    def set_source_2_status(self, s2_status):
+        """Sets the stats for source 2
+
+        Keyword arguments:
+        s2_status -- the status of s2
+
+        Return: None
+        """
+        self.source_2_status = s2_status
+
+    def get_source_statuses(self):
+        """Gets the statuses of source 1 and source 2
+
+        Keyword argument:
+        None
+
+        Return: Tuple
+        """
+        return (self.source_1_status, self.source_2_status)
 
     def set_resv_info(self, res_name, res_pos):
         """Sets the reservation station for the event
