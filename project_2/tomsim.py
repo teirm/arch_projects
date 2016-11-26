@@ -192,14 +192,14 @@ def get_instruction(instructions, instruction_count):
         source_2_status = 1
     elif instruction_type is 'lw':
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
-        source_1 = ''.join(['MEM_','r', str(int(next_instruction[8:11], 2))])
+        source_1 = ''.join(['MEM_', 'r', str(int(next_instruction[8:11], 2))])
         source_2 = None
         source_1_status = 0
         source_2_status = 1
     elif instruction_type is 'sw':
         dest = ''.join(['MEM_', 'r', str(int(next_instruction[8:11], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[11:14], 2))])
-        source_2 = None 
+        source_2 = None
         source_1_status = 0
         source_2_status = 1
     else:
@@ -455,15 +455,15 @@ def free_units(location, position, fu_pos):
     elif location is 'DIV':
         DIV_RS[position] = FREE
         DIVIDER[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr()
+        DIVIDER[fu_pos].increment_instr()
     elif location is 'MULT':
         MULT_RS[position] = FREE
         MULTIPLIER[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr()
+        MULTIPLIER[fu_pos].increment_instr()
     elif location is 'LD':
         LD_RS[position] = FREE
         LOAD[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr()
+        LOAD[fu_pos].increment_instr()
     else:
         ST_RS[position] = FREE
         STORE[fu_pos].set_status(FREE)
@@ -481,7 +481,7 @@ def broadcast(renamed_reg, status):
 
     Returns: None
     """
-    
+
     for event in EVENT_QUEUE:
         if event.get_event() == 'RO':
             (s1_stat, s2_stat) = event.get_source_statuses()
@@ -673,27 +673,29 @@ def read_op_handler(current_cycle):
     EVENT_QUEUE.sort(key=lambda x: x.get_age(current_cycle), reverse=True)
 
     for event in EVENT_QUEUE:
-        if event.get_event() == 'RO' and event.get_end() == current_cycle:
-            (s1, s2) = event.get_sources()
-            (s1_status, s2_status) = event.get_source_statuses()
+        if event.get_event() == 'RO': 
+            if event.get_end() == current_cycle:
+                (s1, s2) = event.get_sources()
+                (s1_status, s2_status) = event.get_source_statuses()
 
-            if s1_status != 1:
-                s1_status = check_sources(s1)
-                event.set_source_1_status(s1_status)
+                if s1_status != 1:
+                    s1_status = check_sources(s1)
+                    event.set_source_1_status(s1_status)
 
-            if s2_status != 1:
-                s2_status = check_sources(s2)
-                event.set_source_2_status(s2_status)
+                if s2_status != 1:
+                    s2_status = check_sources(s2)
+                    event.set_source_2_status(s2_status)
 
-            if event.get_source_statuses() == (1, 1):
-                (pos, latency) = find_func_unit(event.get_instruction())
-                if pos != -1:
-                    event.update_event('EXEC')
-                    event.update_start(current_cycle)
-                    event.update_end(current_cycle + latency)
-                    event.set_fu_info(pos)
+                if event.get_source_statuses() == (1, 1):
+                    (pos, latency) = find_func_unit(event.get_instruction())
+                    if pos != -1:
+                        event.update_event('EXEC')
+                        event.update_start(current_cycle)
+                        event.update_end(current_cycle + latency)
+                        event.set_fu_info(pos)
             else:
                 event.update_end(current_cycle + 1)
+
 
 
 def print_reg_changes(clock_cycle):
@@ -753,8 +755,8 @@ def check_res_status(source_reg):
        None
 
        Returns: None
-    """ 
-    return RES_STATUS[REG_RENAME[source_reg]] 
+    """
+    return RES_STATUS[REG_RENAME[source_reg]]
 
 
 def tomsim(trace_file, config_file, output_file):
@@ -802,13 +804,13 @@ def tomsim(trace_file, config_file, output_file):
 
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
-          
-            if s1_stat != 1: 
+
+            if s1_stat != 1:
                 s1_stat = check_res_status(s1)
-            
-            if s2_stat != 1: 
-                s2_stat = check_res_status(s2) 
-            
+
+            if s2_stat != 1:
+                s2_stat = check_res_status(s2)
+
             (s1_rename, s2_rename) = rename_sources(s1, s2)
             new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
