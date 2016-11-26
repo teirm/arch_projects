@@ -125,6 +125,7 @@ def process_statistics(current_cycle, stalls):
 
     return statistics
 
+
 def parse_trace(trace_file):
     """Parses the trace TEXT file into an array
     for processing during the simulation
@@ -189,6 +190,18 @@ def get_instruction(instructions, instruction_count):
         source_2 = None
         source_1_status = 1
         source_2_status = 1
+    elif instruction_type is 'lw':
+        dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
+        source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_2 = None
+        source_1_status = 0
+        source_2_status = 1
+    elif instruction_type is 'sw':
+        dest = None
+        source_1 = ''.join(['r', str(int(next_instruction[11:14], 2))])
+        source_2 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_1_status = 0
+        source_2_status = 0
     else:
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
@@ -391,21 +404,20 @@ def rename_sources(s1_name, s2_name):
 
     Returns: Tuple
     """
-   
+
     if s1_name is 'IMM8':
         s1_renamed = 'IMM8'
     elif s1_name is None:
         s1_renamed = None
     else:
         s1_renamed = REG_RENAME[s1_name]
-                 
+
     if s2_name is not None:
-        s2_renamed = REG_RENAME[s2_name] 
+        s2_renamed = REG_RENAME[s2_name]
     else:
         s2_renamed = None
 
     return (s1_renamed, s2_renamed)
-    
 
 
 def update_reg_status(resv_reg, status):
@@ -437,23 +449,23 @@ def free_units(location, position, fu_pos):
     if location is 'INT':
         INT_RS[position] = FREE
         INTEGER[fu_pos].set_status(FREE)
-        INTEGER[fu_pos].increment_instr() 
+        INTEGER[fu_pos].increment_instr()
     elif location is 'DIV':
-        DIV_RS[position] = FREE 
+        DIV_RS[position] = FREE
         DIVIDER[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr() 
+        STORE[fu_pos].increment_instr()
     elif location is 'MULT':
-        MULT_RS[position] = FREE 
+        MULT_RS[position] = FREE
         MULTIPLIER[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr() 
+        STORE[fu_pos].increment_instr()
     elif location is 'LD':
         LD_RS[position] = FREE
         LOAD[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr() 
+        STORE[fu_pos].increment_instr()
     else:
         ST_RS[position] = FREE
         STORE[fu_pos].set_status(FREE)
-        STORE[fu_pos].increment_instr() 
+        STORE[fu_pos].increment_instr()
 
 
 def broadcast(renamed_reg, status):
@@ -480,6 +492,8 @@ def broadcast(renamed_reg, status):
                 event.set_source_2_status(1)
 
 # EVENT HANDLERS
+
+
 def write_op_handler(current_cycle):
     """Handles WRITE_OPERAND events in the event queue.
     If an event is found that can be processed on the
@@ -513,7 +527,6 @@ def write_op_handler(current_cycle):
             events_for_removal.append(event)
             events_processed += 1
 
-    
     for removal in events_for_removal:
         EVENT_QUEUE.remove(removal)
 
@@ -559,9 +572,9 @@ def check_sources(source_name):
     """
     global REG_FILE_READS
 
-    if source_name in RES_STATUS.keys(): 
+    if source_name in RES_STATUS.keys():
         source_status = RES_STATUS[source_name]
-        if source_status == 1: 
+        if source_status == 1:
             REG_FILE_READS += 1
     else:
         source_status = 0
@@ -652,11 +665,11 @@ def read_op_handler(current_cycle):
     Returns: Int indiciatng the number of events found
              and processed.
     """
-  
+
     # Sorts all events by age in descending order.
     # Read ops will therefore be handling in decreasing age
     EVENT_QUEUE.sort(key=lambda x: x.get_age(current_cycle), reverse=True)
-    
+
     for event in EVENT_QUEUE:
         if event.get_event() == 'RO' and event.get_end() == current_cycle:
             (s1, s2) = event.get_sources()
@@ -747,7 +760,7 @@ def tomsim(trace_file, config_file, output_file):
     instruction_count = 0
     clock_cycle = 0
     stalls = 0
-    
+
     parse_config(config_file)
     instructions = parse_trace(trace_file)
 
@@ -770,18 +783,18 @@ def tomsim(trace_file, config_file, output_file):
         if res_name is not None and res_name is not 'STALL':
             if instr is 'halt':
                 renamed_dest = 'HALT'
-            else:  
+            else:
                 renamed_dest = "".join([res_name, str(res_pos)])
-            
+
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
-            (s1_rename, s2_rename) = rename_sources(s1, s2)         
+            (s1_rename, s2_rename) = rename_sources(s1, s2)
             new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
             new_event.set_source_1_status(s1_stat)
             new_event.set_source_2_status(s2_stat)
-            
-            if dest is not None: 
+
+            if dest is not None:
                 rename_register(dest, res_name, res_pos)
                 update_reg_status(renamed_dest, 0)
 
@@ -794,7 +807,6 @@ def tomsim(trace_file, config_file, output_file):
         else:
             print('Out of instructions')
 
-
         get_unit_statistics()
         print_reg_changes(clock_cycle)
         print_event_queue(clock_cycle)
@@ -806,8 +818,8 @@ def tomsim(trace_file, config_file, output_file):
 
 #        input("Press ENTER to go to next cycle")
 
-    stat_dict = process_statistics(clock_cycle, stalls) 
-    
+    stat_dict = process_statistics(clock_cycle, stalls)
+
     with open(output_file, 'w') as ofp:
         json.dump(stat_dict, ofp)
 
