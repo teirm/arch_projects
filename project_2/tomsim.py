@@ -481,7 +481,7 @@ def broadcast(renamed_reg, status):
 
     Returns: None
     """
-
+    
     for event in EVENT_QUEUE:
         if event.get_event() == 'RO':
             (s1_stat, s2_stat) = event.get_source_statuses()
@@ -745,6 +745,18 @@ def check_halt_sig():
     return RES_STATUS['HALT'] == 1
 
 
+def check_res_status(source_reg):
+    """Checks the register file for a value to determine
+       status of source
+
+       Keyword arguments:
+       None
+
+       Returns: None
+    """ 
+    return RES_STATUS[REG_RENAME[source_reg]] 
+
+
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
        based on the information in the configuration
@@ -790,6 +802,13 @@ def tomsim(trace_file, config_file, output_file):
 
             new_event = PipeEvent('RO', instr, clock_cycle, 1)
             new_event.set_destination(renamed_dest)
+          
+            if s1_stat != 1: 
+                s1_stat = check_res_status(s1)
+            
+            if s2_stat != 1: 
+                s2_stat = check_res_status(s2) 
+            
             (s1_rename, s2_rename) = rename_sources(s1, s2)
             new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
@@ -818,7 +837,7 @@ def tomsim(trace_file, config_file, output_file):
             print("SIM DONE")
             break
 
-#        input("Press ENTER to go to next cycle")
+        input("Press ENTER to go to next cycle")
 
     stat_dict = process_statistics(clock_cycle, stalls)
 
