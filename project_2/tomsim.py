@@ -192,20 +192,22 @@ def get_instruction(instructions, instruction_count):
         source_2_status = 1
     elif instruction_type is 'lw':
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
-        source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_1 = ''.join(['MEM_','r', str(int(next_instruction[8:11], 2))])
         source_2 = None
         source_1_status = 0
         source_2_status = 1
     elif instruction_type is 'sw':
-        dest = None
+        dest = ''.join(['MEM_', 'r', str(int(next_instruction[8:11], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[11:14], 2))])
-        source_2 = ''.join(['r', str(int(next_instruction[8:11], 2))])
+        source_2 = None 
         source_1_status = 0
-        source_2_status = 0
+        source_2_status = 1
     else:
         dest = ''.join(['r', str(int(next_instruction[5:8], 2))])
         source_1 = ''.join(['r', str(int(next_instruction[8:11], 2))])
         source_2 = ''.join(['r', str(int(next_instruction[11:14], 2))])
+        source_1_status = 0
+        source_2_status = 0
 
     return (
         instruction_type,
