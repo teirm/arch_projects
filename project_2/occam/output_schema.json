@@ -1,0 +1,71 @@
+{
+    "cycles":{
+        "type": "int"
+    },
+    "reg reads": {
+        "type": "int"
+    },
+    "stalls": {
+        "type": "int"
+    },
+    "integer": {
+        "type":[
+            {
+                "id": {
+                    "type": "int"
+                },
+                "instructions": {
+                    "type": "int"
+                }
+            } 
+        ]
+    },
+    "divider":{ 
+        "type":[
+            {
+                "id": {
+                    "type": "int"
+                },
+                "instructions": {
+                    "type": "int"
+                }
+            } 
+        ]
+    },
+    "multiplier": {
+        "type":[
+            {
+                "id": {
+                    "type": "int"
+                },
+                "instructions": {
+                    "type": "int"
+                }
+            } 
+        ]
+    },
+    "store": {
+        "type":[
+            {
+                "id": {
+                    "type": "int"
+                },
+                "instructions": {
+                    "type": "int"
+                }
+            } 
+        ]
+    },
+    "load": {
+        "type":[
+            {
+                "id": {
+                    "type": "int"
+                },
+                "instructions": {
+                    "type": "int"
+                }
+            } 
+        ]
+    }
+}
