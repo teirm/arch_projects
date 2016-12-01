@@ -9,63 +9,18 @@
         "type": "int"
     },
     "integer": {
-        "type":[
-            {
-                "id": {
-                    "type": "int"
-                },
-                "instructions": {
-                    "type": "int"
-                }
-            } 
-        ]
+        "type": "list"
     },
     "divider":{ 
-        "type":[
-            {
-                "id": {
-                    "type": "int"
-                },
-                "instructions": {
-                    "type": "int"
-                }
-            } 
-        ]
+        "type": "list"
     },
     "multiplier": {
-        "type":[
-            {
-                "id": {
-                    "type": "int"
-                },
-                "instructions": {
-                    "type": "int"
-                }
-            } 
-        ]
+        "type": "list"
     },
     "store": {
-        "type":[
-            {
-                "id": {
-                    "type": "int"
-                },
-                "instructions": {
-                    "type": "int"
-                }
-            } 
-        ]
+	"type": "list"
     },
     "load": {
-        "type":[
-            {
-                "id": {
-                    "type": "int"
-                },
-                "instructions": {
-                    "type": "int"
-                }
-            } 
-        ]
+        "type": "list"
     }
 }
