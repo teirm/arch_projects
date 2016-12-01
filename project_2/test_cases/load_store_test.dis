@@ -1,7 +1,7 @@
 LIZ r0, 16
 LIZ r1, 15
 LIZ r2, 3
-MULT r1, r1, r2
+MUL r1, r1, r2
 SW r1, r0
 DIV r1, r1, r2
 LW r0, r1

@@ -45,9 +45,6 @@ REGISTER_FILE = {'000': 'r0',
 REGISTER_FILE = {v.upper(): k for k, v in REGISTER_FILE.items()}
 OP_CODES = {v.upper(): k for k, v in OP_CODES.items()}
 
-pprint(REGISTER_FILE)
-pprint(OP_CODES)
-
 
 def parse_triple(instr_values):
     """Parses instructions with 3 ops"""
@@ -65,22 +62,27 @@ def parse_triple(instr_values):
 def parse_double(instr_values):
     """Parses instructions with 2 ops"""
 
-    if instr_values[0] == 'lw':
+    if instr_values[0] == 'LW':
         instr_bits = OP_CODES[instr_values[0]]
         rd_bits = REGISTER_FILE[instr_values[1]]
         rs_bits = REGISTER_FILE[instr_values[2]]
         rt_bits = '00000'
 
-        bin_string = ''.join([instr_bits, rd_bits, rs_bits, rt_bits, '00'])
+        bin_string = ''.join([instr_bits, rd_bits, rs_bits, rt_bits])
 
-    elif instr_values[0] == 'sw':
+        print('LW')
+        print(bin_string)
+
+    elif instr_values[0] == 'SW':
         instr_bits = OP_CODES[instr_values[0]]
         rd_bits = '000'
-        rs_bits = REGISTER_FILE[instr_values[2]]
-        rt_bits = REGISTER_FILE[instr_values[3]]
-        rt_bits = ''.join([rt_bits, '00'])
+        rs_bits = REGISTER_FILE[instr_values[1]]
+        rt_bits = REGISTER_FILE[instr_values[2]]
 
         bin_string = ''.join([instr_bits, rd_bits, rs_bits, rt_bits, '00'])
+
+        print('SW')
+        print(bin_string)
     else:
         instr_bits = OP_CODES[instr_values[0]]
         rd_bits = REGISTER_FILE[instr_values[1]]
@@ -95,8 +97,8 @@ def parse_single(instr_values):
 
     instr_bits = OP_CODES[instr_values[0]]
     rd_bits = '000'
-    rs_bits = REGISTER_FILE[instr_values[2]]
-    rt_bits = '000'
+    rs_bits = REGISTER_FILE[instr_values[1]]
+    rt_bits = '00000'
 
     bin_string = ''.join([instr_bits, rd_bits, rs_bits, rt_bits])
 
@@ -143,6 +145,8 @@ def assembler(asm_file, out_file):
     tom sim testing"""
 
     hex_values = parse_asm_file(asm_file)
+
+    pprint(hex_values)
 
     with open(out_file, 'w') as ofp:
         for element in hex_values:
