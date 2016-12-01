@@ -18,6 +18,7 @@ class PipeEvent:
         self.start = current_cycle
         self.end = current_cycle + latency
         self.dest = None
+        self.dest_org = None
         self.source_1 = None
         self.source_1_status = 0
         self.source_2 = None
@@ -31,6 +32,7 @@ class PipeEvent:
         return """Event:       {}
            Instruction: {}
            Destination: {}
+           Org. Dest:   {}
            Source 1:    {}
            Source 2:    {}
            Source 1 Status: {}
@@ -42,6 +44,7 @@ class PipeEvent:
            """.format(self.event,
                       self.instruction,
                       self.dest,
+                      self.dest_org,
                       self.source_1,
                       self.source_2,
                       self.source_1_status,
@@ -51,6 +54,30 @@ class PipeEvent:
                       self.location,
                       self.position)
 
+
+    def set_org_dest(self, dest_reg):
+        """Sets the original register that was
+        the destination
+        
+        Keyword argumetns:
+        dest_reg -- name of the destination register
+
+        Returns: None
+        """
+        self.dest_org = dest_reg
+
+
+    def get_org_dest(self):
+        """Gets the original register that was a dest
+
+        Keyword arguments:
+        None
+
+        Returns: String
+        """
+        return self.dest_org
+
+    
     def set_fu_info(self, fu_id):
         """Sets the functional unit information
 

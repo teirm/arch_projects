@@ -45,6 +45,17 @@ REG_RENAME = {}
 # RESERVATION STATION STATUS
 RES_STATUS = {}
 
+# REGISTER FILE
+
+REGISTER_FILE = {'r0': 0,
+                 'r1': 0,
+                 'r2': 0,
+                 'r3': 0,
+                 'r4': 0,
+                 'r5': 0,
+                 'r6': 0,
+                 'r7': 0}
+
 # EVENT QUEUE
 EVENT_QUEUE = []
 
@@ -68,6 +79,35 @@ OPCODE_MAP = {'00000': 'add',
 
 # REG_FILE READ COUNT
 REG_FILE_READS = 0
+
+
+def set_dest_value(dest_reg, value):
+    """Resets the destination register value
+    to 0
+
+    Keyword arguments:
+    dest_reg -- destination register name
+    value -- value to assign
+
+    Returns: None
+    """
+    REGISTER_FILE[dest_reg] = value 
+
+
+def check_reg_file(source_reg):
+    """Checks the register file for the value
+
+    Keyword arguments:
+    source_reg -- source register name
+
+    Returns: None
+    """
+    global REG_FILE_READS
+
+    REG_FILE_READS += 1
+    
+    return REGISTER_FILE[source_reg]
+
 
 
 def process_statistics(current_cycle, stalls):
@@ -525,6 +565,10 @@ def write_op_handler(current_cycle):
             (location, fu_id) = event.get_fu_info()
             broadcast(fu_destination, 1)
             update_reg_status(fu_destination, 1)
+            
+            org_dest = event.get_org_dest()
+            set_dest_value(org_dest, 1) 
+    
             free_units(location, position, fu_id)
             events_for_removal.append(event)
             events_processed += 1
@@ -797,6 +841,8 @@ def tomsim(trace_file, config_file, output_file):
             # Only prepare to fetch next instruction if no stall
 
         if res_name is not None and res_name is not 'STALL':
+            
+
             if instr is 'halt':
                 renamed_dest = 'HALT'
             else:
@@ -811,6 +857,13 @@ def tomsim(trace_file, config_file, output_file):
             if s2_stat != 1:
                 s2_stat = check_res_status(s2)
 
+            if s1_stat != 1:
+                s1_stat = check_reg_file(s1)
+
+            if s2_stat != 1:
+                s2_stat = check_reg_file(s2)
+
+
             (s1_rename, s2_rename) = rename_sources(s1, s2)
             new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
@@ -818,6 +871,9 @@ def tomsim(trace_file, config_file, output_file):
             new_event.set_source_2_status(s2_stat)
 
             if dest is not None:
+                set_dest_value(dest, 0) 
+                new_event.set_org_dest(dest)
+                
                 rename_register(dest, res_name, res_pos)
                 update_reg_status(renamed_dest, 0)
 
