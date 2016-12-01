@@ -1,0 +1,80 @@
+Project: Tomasulo's Algorithm Simulator
+Course: CS2410
+Author: Cyrus Ramavarapu
+Email: crr41@pitt.edu
+Date: 30 November 2016
+===================================================
+
+Purpose:
+--------
+
+Simulate Tomasulo's algorithm on the X instruction set in
+ a single instruction, in-order pipeline.
+
+Consumes and outputs data in a format that is compatible
+with the OCCAM SVCS for processing and analysis.
+
+
+Dependencies:
+------------
+Python3
+
+The simulator is written in Python3.  No special modules
+are used in the simulation.
+
+An assembler, also written in Python3, is also available;
+however, it requires pip3 and the bitstring module.
+
+
+Testing:
+-------
+Different instruction sequences were tested in the simulation
+and the assembly instructions are provided in the 'test_cases'
+directory.  The encoded instructions are provided in the 'traces'
+dictory and have names corresponding to the test cases.
+
+
+OCCAM:
+------
+Occam configuration files are available in the directory 'occam'
+and should be placed within the same directory as 'object.json'
+when creating the OCCAM object.  A directory containing the
+project files should be in project_2 directory at the same level
+as 'oject.json'.
+
+Bugs and Issues
+---------------
+All instructions were tested and are processed in the simulation;
+however, a few assumptions were made regarding handling of instructions
+and events in the pipeline.
+
+1) When operands are available, an event in the READ_OPERAND phase
+   will be upgraded to an EXEC event to begin on the next clock cycle
+   assuming the availability of the necessary functional unit is available.
+
+2) The HALT instruction processed as any other instruction (single, in-order
+   issue); however, the simulation does not immediately come to a halt when 
+   HALT completes the WRITE_OPERAND phase.  Instead, the ISSUE phase is 
+   stopped and no more instructions are added to the pipeline.  When all
+   instructions that were in the pipeline complete the WRITE_OPERAND phase
+   the simulation ends.
+
+3) No computation is performed by the simulation.  Immediate values are
+   represented by 'IMM8' and values are stored as either existing in a
+   register or reservation station in a binary manner.
+
+6) OCCAM build times can be slightly lengthy because python3 is not 
+   default in the Ubuntu VM.  Docker seems to take a very long
+   to pull a moderately sized file (~40 Mb).  It might seem to have 
+   hung; however, it will eventually proceed.  Grab a drink or 
+   browse the web (I hear it has kittens and puppies) in the mean time.
+   
+   This depends very much on where the simulation is performed and 
+   appears to be much faster when done on PITTNET (or within 
+   Sennot Sq.) 
+
+
+
+ 
+
+ 
