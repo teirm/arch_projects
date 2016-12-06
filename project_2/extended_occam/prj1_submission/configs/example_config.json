@@ -1,0 +1,5 @@
+{"integer":[{"number":2,"resnumber":2,"latency":1}],
+"divider":[{"number":1,"resnumber":2,"latency":20}],
+"multiplier":[{"number":2,"resnumber":4,"latency":10}],
+"load":[{"number":1,"resnumber":8,"latency":100}],
+"store":[{"number":1,"resnumber":4,"latency":2}]}

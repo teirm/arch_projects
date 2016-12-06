@@ -1,0 +1,1 @@
+{"store": [{"instructions": 0, "id": 0}], "multiplier": [{"instructions": 0, "id": 1}], "load": [{"instructions": 0, "id": 0}], "cycles": 14, "divider": [{"instructions": 0, "id": 0}], "integer": [{"instructions": 0, "id": 1}], "reg reads": 0, "stalls": 0}

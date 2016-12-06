@@ -1,0 +1,6 @@
+# Store Word and Load Word example
+88FF
+8110
+4820
+4220
+6800 

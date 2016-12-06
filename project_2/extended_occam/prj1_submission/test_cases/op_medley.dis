@@ -1,0 +1,7 @@
+LIZ r0, 3
+LIZ r1, 2 
+EXP r2, r0, r1
+AND r3, r0, r1
+MOD r4, r0, r1
+NOR r6, r0, r1
+HALT 

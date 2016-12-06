@@ -1,0 +1,1 @@
+{"reg reads": 7, "stalls": 4, "multiplier": [{"id": 0, "instructions": 0}, {"id": 1, "instructions": 0}], "load": [{"id": 0, "instructions": 2}], "integer": [{"id": 0, "instructions": 8}, {"id": 1, "instructions": 1}], "divider": [{"id": 0, "instructions": 2}], "store": [{"id": 0, "instructions": 2}], "cycles": 214}

@@ -1,0 +1,1 @@
+{"integer": [{"instructions": 3, "id": 0}, {"instructions": 2, "id": 1}], "reg reads": 5, "cycles": 49, "stalls": 0, "divider": [{"instructions": 2, "id": 0}], "multiplier": [{"instructions": 0, "id": 0}, {"instructions": 0, "id": 1}], "store": [{"instructions": 0, "id": 0}], "load": [{"instructions": 0, "id": 0}]}

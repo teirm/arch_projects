@@ -1,0 +1,26 @@
+.
+├── directory_hierarchy.txt
+├── simulator-isax_Sim
+│   ├── build.sh
+│   ├── config_schema.json
+│   ├── launch.py
+│   ├── object.json
+│   ├── occam.py
+│   ├── output_schema.json
+│   └── xsim_program
+│       ├── configs
+│       │   └── config_1.json
+│       ├── function_tests.py
+│       ├── input_1.txt
+│       ├── out.json
+│       ├── __pycache__
+│       │   ├── function_tests.cpython-35-PYTEST.pyc
+│       │   └── xsim.cpython-35.pyc
+│       └── xsim.py
+└── volume-InputFile
+    ├── input_1.txt
+    ├── input_8.txt
+    ├── input_9.txt
+    └── object.json
+
+5 directories, 18 files

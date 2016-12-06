@@ -1,0 +1,15 @@
+LIZ r0, 8
+LIZ r1, 32
+LIZ r2, 2
+EXP r2, r2, r2
+SW r2, r1
+ADD r1, r1, r0
+EXP r2, r2, r2
+SW r2, r1
+ADD r1, r1, r0
+LW r3, r2
+PUT r3
+SUB r1, r1, r0
+LW r3, r2
+SUB r1, r1, r0
+HALT

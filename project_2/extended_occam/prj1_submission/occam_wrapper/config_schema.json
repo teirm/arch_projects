@@ -1,0 +1,51 @@
+{
+	"add":{
+		"type":"int",
+		"default": 1,
+		"label": "Add Latency",
+		"description": "The number of clock cycles for an ADD (DEFAULT: 1)"
+      },
+	"sub":{
+		"type":"int",
+		"default": 1,
+		"label": "Sub Latency",
+		"description": "The number of clock cycles for a SUB (DEFAULT: 1)"
+      },
+	"and":{
+		"type":"int",
+		"default": 1,
+		"label": "And Latency",
+		"description": "The number of clock cycles for a AND (DEFAULT: 1)"
+      },
+	"nor":{
+		"type":"int",
+		"default": 1,
+		"label": "Nor Latency",
+		"description": "The number of clock cycles for a NOR (DEFAULT: 1)"
+      },
+	"div":{
+		"type":"int",
+		"default": 1,
+		"label": "Div Latency",
+		"description": "The number of clock cycles for a DIV (DEFAULT: 1)"
+      },
+	"mul":{
+		"type":"int",
+		"default": 1,
+		"label": "Mul Latency",
+		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
+      },
+	"mod":{
+		"type":"int",
+		"default": 1,
+		"label": "Mod Latency",
+		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
+      },
+	"exp":{
+		"type":"int",
+		"default": 1,
+		"label": "Exp Latency",
+		"description": "The number of clock cycles for a MUL (DEFAULT: 1)"
+      }
+}
+

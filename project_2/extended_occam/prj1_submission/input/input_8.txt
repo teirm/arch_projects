@@ -1,0 +1,23 @@
+# JUMP AND LINK REGISTER
+# 26 October 2016
+#
+# EXPECTED BEHAVIOR:
+# Ox00 LIZ ro 64
+# 0x10 JALR r1  r0 ---*
+# 0x20 LIS r3 -1  <-- |--*
+# 0x30 HALT           |  |
+# 0x40 LIZ r4 10 <----*  |    
+# 0x50 LIZ r6 30         |
+# 0x60 LUI r6 15         |
+# 0x70 JR r1 ------------*
+#
+#
+#
+8040
+9900
+8BFF
+6800
+840A
+861E
+960F
+6020
