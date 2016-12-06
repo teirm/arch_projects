@@ -17,9 +17,8 @@
    "outputs": [
 	{
 		"createIn": "new_output",
-		"file": "statistics.json",
-		"schema": "output_schema.json",
-		"type": "application/json"
+		"file": "output.trace",
+		"type": "trace"
 	}
    ],
    "architecture": "x86-64",

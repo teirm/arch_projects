@@ -40,14 +40,31 @@ if len(inputs) > 0:
 #  The output goes in this directory(see object.json)   #
 #                                                       #
 #########################################################
+
+## Ask for the output path and add new_output (as defined in the *object.json*)
+output_path = os.path.join(object.path(), "new_output")
+## Check if object is connected to another block
+connection_to_trace = object.outputs("trace")
+if len(connection_to_trace) > 0:
+    output_block = connection_to_trace[0]
+    output_path = output_block.volume()
+## Create dir if needed
+if not os.path.exists(output_path):
+    os.mkdir(output_path);
+## Output file (named as defined in *object.json*)
+output_path = os.path.join(output_path, "output.trace")
+
+
+
+#OLD CONFIG
 # Output file dir and path
-output_dir_path="new_output"
-output_file_path=os.path.join(output_dir_path,"statistics.json")
-# Create dir and set full path
-output_dir_full_path = os.path.join(object.path(), output_dir_path)
-if not os.path.exists(output_dir_full_path):
-    os.mkdir(output_dir_full_path);
-output_full_path = os.path.join(object.path(), output_file_path)
+#output_dir_path="new_output"
+#output_file_path=os.path.join(output_dir_path,"statistics.json")
+## Create dir and set full path
+#output_dir_full_path = os.path.join(object.path(), output_dir_path)
+#if not os.path.exists(output_dir_full_path):
+#    os.mkdir(output_dir_full_path);
+#output_full_path = os.path.join(object.path(), output_file_path)
 
 #########################################################
 #                                                       #

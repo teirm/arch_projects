@@ -1,6 +1,4 @@
 LIS r1, -1
-LIS r1, -1
-LIS r1, -1
 PUT r1
 LIS r1, 1
 PUT r1

@@ -28,12 +28,16 @@ input_configurations_path = object.configuration_file("Configuration Options")
 # Set default input file
 default_input_file_path="dummy_program/input.txt"
 input_file_path=os.path.join(object_path,default_input_file_path)
-inputs = object.inputs()
+## Check if user gave us a new file
+inputs = object.inputs("trace")
 if len(inputs) > 0:
     files = inputs[0].files()
     if len(files) > 0:
-        input_file_path = inputs[0].files()[0]
-
+        input_path = inputs[0].files()[0]
+    else:
+        temp_input_path = os.path.join(inputs[0].volume(),"output.trace")
+        if os.path.exists(temp_input_path):
+            input_path=temp_input_path
 #########################################################
 #                                                       #
 #  The output goes in this directory(see object.json)   #

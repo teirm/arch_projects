@@ -21,6 +21,26 @@ DATA_MEMORY = {}
 STATISTICS_DICT = {}
 
 
+def create_tom_sim_trace(opcode, instruction, outfile):
+    """
+    Prints out instructions for tomsim from
+    xsim hex
+    
+    Keyword arguments:
+    opcode -- opcode for the instruction
+    instruction -- hex version of the instruction
+    outfile -- the outfile name 
+    
+    Returns: None 
+    """
+    invalid_opcodes = ['10100', '10110', '10111', '01100', '10011', '11000']      
+    hex_instruction = hex(int(instruction, 2))[2:].upper().zfill(4)   
+   
+    if opcode not in invalid_opcodes:
+        with open(outfile, 'a') as trace_out:
+            print(hex_instruction, file=trace_out)     
+    
+
 def configure_latency(config_file):
     """Configures the latencies for the processor simulation
         from a JSON input file
@@ -598,6 +618,8 @@ def xsim(config_file, input_file, output_file):
         op_code = current_instruction[0:5]
         data_fields = current_instruction[5:16]
         instruction_count += 1
+    
+        create_tom_sim_trace(op_code, current_instruction, output_file) 
 
         if op_code == '00000':
             add_instruction(data_fields)
@@ -732,8 +754,8 @@ def xsim(config_file, input_file, output_file):
     STATISTICS_DICT['stats'][0]['instructions'] = instruction_count
     STATISTICS_DICT['stats'][0]['cycles'] = clock_cycles
 
-    with open(output_file, 'w') as ofp:
-        json.dump(STATISTICS_DICT, ofp)
+##    with open(output_file, 'w') as ofp:
+##        json.dump(STATISTICS_DICT, ofp)
 
     pprint(STATISTICS_DICT)
 

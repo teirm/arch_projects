@@ -169,15 +169,15 @@ def disassembler(input_file, out_file):
                 print('EXP')
             elif op_code == '01000':
                 (Rd, Rs, Rt) = process_R_instruction(data_fields)
-                print('LW {}, {}, {}'.format(
-                    Rd, Rs, Rt),
+                print('LW {}, {}'.format(
+                    Rd, Rs),
                     file=assembly_code
                 )
                 print('LW')
             elif op_code == '01001':
                 (Rd, Rs, Rt) = process_R_instruction(data_fields)
-                print('SW {}, {}, {}'.format(
-                    Rd, Rs, Rt),
+                print('SW {}, {}'.format(
+                    Rt, Rs),
                     file=assembly_code
                 )
                 print('SW')
@@ -239,15 +239,15 @@ def disassembler(input_file, out_file):
                 print('BZ')
             elif op_code == '01100':
                 (Rd, Rs, Rt) = process_R_instruction(data_fields)
-                print('JR {}, {}, {}'.format(
-                    Rd, Rs, Rt),
+                print('JR {}'.format(
+                    Rs),
                     file=assembly_code
                 )
                 print('JR')
             elif op_code == '10011':
                 (Rd, Rs, Rt) = process_R_instruction(data_fields)
-                print('JALR {}, {}, {}'.format(
-                    Rd, Rs, Rt),
+                print('JALR {}, {}'.format(
+                    Rd, Rs),
                     file=assembly_code
                 )
                 print('JALR')

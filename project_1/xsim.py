@@ -338,7 +338,7 @@ def load_word(data_fields):
     else:
         REGISTER_FILE[Rd] = Bits(uint=result, length=16).bin
 
-    update_register_statistics(Rd, result * 2)  
+    update_register_statistics(Rd, result * 2)
 
     return REGISTER_FILE[Rd]
 
@@ -354,7 +354,7 @@ def store_word(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)  
+    DATA_MEMORY[REGISTER_FILE[Rs].zfill(16)] = get_register_stats(Rt)
 
     return DATA_MEMORY[REGISTER_FILE[Rs]]
 
@@ -431,7 +431,7 @@ def branch_positive(data_fields, program_counter):
     if check_value > 0:
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
-        ls_bin = Bits(bin=z_ext) 
+        ls_bin = Bits(bin=z_ext)
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -454,7 +454,7 @@ def branch_negative(data_fields, program_counter):
     if check_value < 0:
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
-        ls_bin = Bits(bin=z_ext) 
+        ls_bin = Bits(bin=z_ext)
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -476,7 +476,7 @@ def branch_nzero(data_fields, program_counter):
     if check_value is not 0:
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
-        ls_bin = Bits(bin=z_ext) 
+        ls_bin = Bits(bin=z_ext)
         return int(ls_bin.int / WORD_SIZE)
     else:
         return program_counter + 1
@@ -501,10 +501,10 @@ def branch_zero(data_fields, program_counter):
         print(Imm8)
         ls_imm8 = (Bits(bin=Imm8)).bin
         z_ext = (ls_imm8).zfill(16)
-        ls_bin = Bits(bin=z_ext) 
+        ls_bin = Bits(bin=z_ext)
         return int(ls_bin.int / WORD_SIZE)
     else:
-        return program_counter + 1 
+        return program_counter + 1
 
 
 def jump_register(data_fields, program_counter):
@@ -532,15 +532,15 @@ def jump_and_link_register(data_fields, program_counter):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    
-    int_value = program_counter + 1 
-     
+
+    int_value = program_counter + 1
+
     REGISTER_FILE[Rd] = Bits(
         int=int_value,
         length=16).bin
-      
-    update_register_statistics(Rd, int_value) 
-    
+
+    update_register_statistics(Rd, int_value)
+
     return int((Bits(bin=REGISTER_FILE[Rs]).int / 2))
 
 
@@ -554,8 +554,8 @@ def jump_immediate(Imm11, program_counter):
 
     Return: int
     """
-    pc_bits = Bits(int=program_counter*2, length=16).bin
-    ls_imm = Bits(bin=Imm11) 
+    pc_bits = Bits(int=program_counter * 2, length=16).bin
+    ls_imm = Bits(bin=Imm11)
     cat_bits = ''.join([pc_bits[0:5], ls_imm.bin])
     return int(Bits(bin=cat_bits).int / WORD_SIZE)
 
@@ -570,7 +570,7 @@ def put_register(data_fields):
     Return: int
     """
     (Rd, Rs, Rt) = process_R_instruction(data_fields)
-    int_value = get_register_stats(Rs) 
+    int_value = get_register_stats(Rs)
     return REGISTER_FILE[Rs]
 
 
@@ -719,7 +719,7 @@ def xsim(config_file, input_file, output_file):
             STATISTICS_DICT['stats'][0]['halt'] += 1
             break
         elif op_code == '01110':
-            put_register(data_fields) 
+            put_register(data_fields)
             print('PUT')
             clock_cycles += 1
             program_counter += 1
