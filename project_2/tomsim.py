@@ -46,7 +46,6 @@ REG_RENAME = {}
 RES_STATUS = {}
 
 # REGISTER FILE
-
 REGISTER_FILE = {'r0': 0,
                  'r1': 0,
                  'r2': 0,
@@ -451,8 +450,10 @@ def rename_sources(s1_name, s2_name):
         s1_renamed = 'IMM8'
     elif s1_name is None:
         s1_renamed = None
-    else:
+    elif s1_name in REG_RENAME.keys():
         s1_renamed = REG_RENAME[s1_name]
+    else:
+        s1_renamed = 'REG_FILE'
 
     if s2_name is not None:
         s2_renamed = REG_RENAME[s2_name]
@@ -800,8 +801,11 @@ def check_res_status(source_reg):
 
        Returns: None
     """
-    return RES_STATUS[REG_RENAME[source_reg]]
 
+    if source_reg in REG_RENAME.keys(): 
+        return RES_STATUS[REG_RENAME[source_reg]]
+
+    return -1 
 
 def tomsim(trace_file, config_file, output_file):
     """Simulates Tomasulos on the given trace
@@ -824,6 +828,7 @@ def tomsim(trace_file, config_file, output_file):
     parse_config(config_file)
     instructions = parse_trace(trace_file)
 
+
     while True:
         (res_name, res_pos) = (None, None)
         write_op_handler(clock_cycle)
@@ -837,6 +842,9 @@ def tomsim(trace_file, config_file, output_file):
         if instruction_count < len(instructions) and not halt_sig:
             (instr, dest, s1, s1_stat, s2, s2_stat) = get_instruction(
                 instructions, instruction_count)
+
+            print('{} {} {} {}'.format(instr, dest, s1, s2)) 
+
             (res_name, res_pos) = get_resv_station(instr)
             # Only prepare to fetch next instruction if no stall
 
@@ -863,8 +871,11 @@ def tomsim(trace_file, config_file, output_file):
             if s2_stat != 1:
                 s2_stat = check_reg_file(s2)
 
-
             (s1_rename, s2_rename) = rename_sources(s1, s2)
+           
+            if s1_rename == 'REG_FILE':
+                s1_stat = 1 
+            
             new_event.set_sources(s1_rename, s2_rename)
             new_event.set_resv_info(res_name, res_pos)
             new_event.set_source_1_status(s1_stat)
