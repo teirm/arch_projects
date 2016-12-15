@@ -103,10 +103,10 @@ def check_reg_file(source_reg):
     """
     global REG_FILE_READS
 
-    REG_FILE_READS += 1
+    if REGISTER_FILE[source_reg] == 1:
+        REG_FILE_READS += 1
     
     return REGISTER_FILE[source_reg]
-
 
 
 def process_statistics(current_cycle, stalls):
@@ -433,6 +433,7 @@ def rename_register(dest_reg, resv_name, res_pos):
     Returns: None
     """
     REG_RENAME[dest_reg] = "".join([resv_name, str(res_pos)])
+    REGISTER_FILE[dest_reg] = 0
 
 
 def rename_sources(s1_name, s2_name):
@@ -597,12 +598,18 @@ def exec_handler(current_cycle):
     events_processed = 0
 
     for event in EVENT_QUEUE:
-        if event.get_end() == current_cycle and event.get_event() == 'EXEC':
-            event.update_event('WO')
-            event.update_start(current_cycle)
-            event.update_end(current_cycle + 1)
+        
+        if event.get_event() == 'EXEC':
+            REGISTER_FILE[event.get_org_dest()] = 0 
+            if event.get_end() == current_cycle:
+                event.update_event('WO')
+                event.update_start(current_cycle)
+                event.update_end(current_cycle + 1)
+                
+                events_processed += 1
+        
+        
 
-            events_processed += 1
 
     return events_processed
 
@@ -906,6 +913,7 @@ def tomsim(trace_file, config_file, output_file):
             print("SIM DONE")
             break
 
+        pprint(REGISTER_FILE)    
         input("Press ENTER to go to next cycle")
 
     stat_dict = process_statistics(clock_cycle, stalls)
