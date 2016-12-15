@@ -1,7 +1,9 @@
 LIZ r6, 10
 LIZ r2, 3
 MUL r0, r2, r2
+NOR r7, r2, r6
 SUB r5, r6, r2
 DIV r7, r2, r6
 ADD r6, r5, r2
+AND r3, r7, r5
 HALT 

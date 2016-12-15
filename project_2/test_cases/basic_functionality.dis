@@ -5,8 +5,8 @@ ADD r3, r0, r1
 AND r3, r0, r1
 MOD r4, r0, r1
 NOR r6, r0, r1
-SUB r5, r4, r0
-DIV r2, r4, r1
+SUB r5, r0, r1
+DIV r2, r0, r1
 PUT r2
 MUL r3, r0, r1
 HALT 

@@ -4,5 +4,8 @@ LIZ r2, 3
 MUL r1, r1, r2
 SW r1, r0
 DIV r1, r1, r2
+ADD r1, r1, r1
 LW r0, r1
+SUB r3, r1, r1
+PUT r3
 HALT
